@@ -1,0 +1,68 @@
+"""
+Application configuration using pydantic-settings.
+
+Settings are loaded from environment variables and/or a .env file.
+All config is typed and validated at startup — missing required values
+raise a clear error before any request is served.
+
+Usage:
+    from src.config.settings import get_settings
+    settings = get_settings()
+    print(settings.google_api_key)
+"""
+
+from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    """
+    Application settings loaded from environment variables.
+
+    All fields with no default are required at startup.
+    Optional fields default to None and may be unused depending on
+    which providers are active.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",  # silently ignore unknown env vars
+    )
+
+    # LLM Providers 
+    google_api_key: str | None = None
+    google_model: str = "gemini-2.0-flash"
+
+    openai_api_key: str | None = None
+
+    groq_api_key: str | None = None
+
+    # Embedding & Search 
+    hf_token: str | None = None
+
+    # LangSmith Observability 
+    langchain_api_key: str | None = None
+    langchain_project: str | None = None
+
+    # Tavily Web Search 
+    tavily_api_key: str | None = None
+
+    # Application 
+    app_name: str = "YouTube Researcher API"
+    app_version: str = "0.1.0"
+    debug: bool = False
+
+    # Transcript Processing 
+    sentence_pause_threshold: float = 2.0  # seconds between segments to force sentence break
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """
+    Returns a cached Settings singleton.
+
+    Using lru_cache means .env is read once at startup, not on every request.
+    Call `get_settings.cache_clear()` in tests to reset between test cases.
+    """
+    return Settings()
