@@ -1,0 +1,30 @@
+# Internal docs (local-only analysis files)
+/ARCHITECTURE.md
+/codebase_analysis.md
+
+# Editor / AI tool configs
+/opencode.json
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE and editor folders
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python bytecode (root-level safety guard)
+__pycache__/
+*.py[oc]
+*.egg-info/
+
+# Virtual environments (root-level safety guard)
+.venv/
+venv/
+env/
+
+# Secrets — never commit real keys
+.env
