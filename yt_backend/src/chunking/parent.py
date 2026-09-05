@@ -35,7 +35,7 @@ class ParentChunker(Chunker[ParentChunk]):
         ) -> ParentChunk:
 
         return ParentChunk(
-            chunk_id= f"p_{index:04d}", 
+            chunk_id=f"{video_id}_p_{index:04d}", 
             video_id=video_id, 
             text=" ".join(sentence.text for sentence in sentences),
             start=sentences[0].start,
