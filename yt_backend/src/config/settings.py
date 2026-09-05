@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     qdrant_api_key: str | None = None
     qdrant_collection: str = "youtube_chunks"
 
+    # PostgreSQl database url(which use for storing parent chunks context)
+    database_url: str
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """

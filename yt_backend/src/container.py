@@ -5,6 +5,9 @@ from src.chunking.service import ChunkingService
 from src.embeddings.service import EmbeddingService
 from src.embeddings.gemini import GoogleEmbeddingProvider
 from src.vectorstore.qdrant import QdrantVectorStore
+from src.parentstore.postgres import PostgresParentStore
+from src.database.connection import SessionFactory
+
 
 def create_transcript_service() -> TranscriptService:
     return TranscriptService()
@@ -37,6 +40,12 @@ def create_vector_store() -> QdrantVectorStore:
     )
 
 
+def create_parent_store() -> PostgresParentStore:
+    return PostgresParentStore(
+        session_factory=SessionFactory,
+    )
+
+
 def create_indexing_service() -> IndexingService:
 
     return IndexingService(
@@ -44,4 +53,5 @@ def create_indexing_service() -> IndexingService:
         chunking_service=create_chunking_service(),
         embedding_service=create_embedding_service(),
         vector_store=create_vector_store(),
+        parent_store=create_parent_store(),
     )
