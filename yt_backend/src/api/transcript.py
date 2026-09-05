@@ -11,7 +11,7 @@ NO business logic lives here.
 
 from fastapi import APIRouter
 
-from src.models.api import TranscriptRequest, TranscriptResponse
+from src.models.api import TranscriptRequest, TranscriptResponse, ChunkRequest, ChunkResponse, EmbeddedResponse, IndexResponse
 from src.services.transcript_service import TranscriptService
 
 router = APIRouter(tags=["Transcript"])
@@ -45,3 +45,26 @@ def get_transcript(request: TranscriptRequest) -> TranscriptResponse:
     """
     # Exceptions bubble up to the handlers registered in main.py
     return _service.get_transcript(request.url)
+
+@router.post('/chunks',
+             response_model=ChunkResponse,
+             summary="Create Hierarchical transcript chunks")
+def get_chunks(request:ChunkRequest):
+
+    return _service.get_chunks(request.url)
+
+
+@router.post('/embeddings',
+             response_model=EmbeddedResponse,
+             summary="Create Hierarchical chunks embeddings")
+def get_embeddings(request:ChunkRequest):
+
+    return _service.get_embedding(request.url)
+
+
+@router.post('/response',
+             response_model=IndexResponse,
+             summary="Get Overall flow response after embeddings store")
+def get_response(request:ChunkRequest):
+
+    return _service.get_response(request.url)

@@ -13,3 +13,5 @@ pydantic
 pydantic-settings
 tiktoken
 youtube-transcript-api
+google-genai
+qdrant-client
