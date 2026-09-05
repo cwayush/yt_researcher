@@ -15,3 +15,6 @@ tiktoken
 youtube-transcript-api
 google-genai
 qdrant-client
+psycopg[binary]
+sqlalchemy
+alembic

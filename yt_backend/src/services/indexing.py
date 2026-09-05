@@ -10,6 +10,8 @@ from src.services.transcript import TranscriptService
 from src.chunking.service import ChunkingService
 from src.embeddings.service import EmbeddingService
 from src.vectorstore.base import VectorStore
+from src.parentstore.base import ParentStore
+
 
 class IndexingService:
     """
@@ -24,12 +26,15 @@ class IndexingService:
                  transcript_service: TranscriptService,
                  chunking_service: ChunkingService,
                  embedding_service: EmbeddingService,
-                 vector_store: VectorStore) -> None:
+                 vector_store: VectorStore,
+                 parent_store: ParentStore) -> None:
 
         self._transcript_service = transcript_service
         self._chunking_service = chunking_service
         self._embedding_service = embedding_service
         self._vector_store = vector_store
+        self._parent_store = parent_store
+
 
     def index(self, url: str) -> IndexResponse:
         """
@@ -45,10 +50,13 @@ class IndexingService:
         # 2. Parent + child chunks
         chunks = self._chunking_service.create_chunks(sentences=sentences,video_id=video_id)
 
-        # 3. Generate child embeddings
+        # 3. Store parent chunks in PostgreSQL
+        self._parent_store.add_parents(chunks.parents)
+
+        # 4. Generate child embeddings
         embedded_children = self._embedding_service.embed_children(chunks.children)
 
-        # 4. Store child vectors in Qdrant
+        # 5. Store child vectors in Qdrant
         self._vector_store.add_chunks(embedded_children)
 
         return IndexResponse(video_id=video_id,
