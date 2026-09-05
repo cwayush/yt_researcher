@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     google_api_key: str | None = None
     google_model: str = "gemini-2.0-flash"
 
+    # Embedding Models and dimensions
+    google_embedding_model: str = "gemini-embedding-001"
+    google_embedding_dimensions: int = 768
+
     openai_api_key: str | None = None
 
     groq_api_key: str | None = None
@@ -56,6 +60,10 @@ class Settings(BaseSettings):
     # Transcript Processing 
     sentence_pause_threshold: float = 2.0  # seconds between segments to force sentence break
 
+    # Quant vector database configuration
+    qdrant_url: str
+    qdrant_api_key: str | None = None
+    qdrant_collection: str = "youtube_chunks"
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
