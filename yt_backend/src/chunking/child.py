@@ -97,9 +97,10 @@ class ChildChunker(Chunker[ChildChunk]):
 
                 # Sentence overlap.
                 if self._overlap_sentences > 0:
-                    current = current[-self._overlap_sentences]
+                    current = current[-self._overlap_sentences:]
 
-                    current_tokens = sum(self._tokenizer.count(item.text) for item in current)
+                    current_tokens = sum(self._tokenizer.count(item.text) 
+                                         for item in current)
 
                 else:
                     current = []
