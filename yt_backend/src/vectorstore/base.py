@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.models.embeddings import EmbeddedChunk
+from src.models.embedding import EmbeddedChunk
 from src.models.vectorstore import VectorStoreResult
 
 

@@ -13,7 +13,7 @@ class ChunkingService:
     """
 
     def __init__(self,
-                 chunker: HierarchicalChunks | None = None) -> None:
+                 chunker: HierarchicalChunker | None = None) -> None:
 
         if chunker is not None:
             self._chunker = chunker
@@ -40,5 +40,3 @@ class ChunkingService:
 
         return self._chunker.chunk(sentences=sentences,
                                    video_id=video_id)
-
-    

@@ -1,6 +1,6 @@
 import uuid
 from qdrant_client import QdrantClient, models
-from src.models.embeddings import EmbeddedChunk
+from src.models.embedding import EmbeddedChunk
 from src.vectorstore.base import VectorStore
 from src.models.vectorstore import VectorStoreResult
 
@@ -34,7 +34,7 @@ class QdrantVectorStore(VectorStore):
                    chunks: list[EmbeddedChunk]) -> VectorStoreResult:    
 
         if not chunks:
-            return
+            return VectorStoreResult(stored_count=0)
 
         points = []
 

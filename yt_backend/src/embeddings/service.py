@@ -1,6 +1,6 @@
 from src.embeddings.base import EmbeddingProvider
 from src.models.chunks import ChildChunk
-from src.models.embeddings import EmbeddedChunk
+from src.models.embedding import EmbeddedChunk
 
 class EmbeddingService:
     """

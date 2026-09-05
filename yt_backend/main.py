@@ -11,10 +11,13 @@ Never expose stack traces or internal error details to clients.
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-
-from src.api.exceptions import InvalidYouTubeURL, TranscriptNotAvailable, VideoNotFound
-from src.api.transcript import router as transcript_router
 from src.config.settings import get_settings
+from src.api.exceptions import InvalidYouTubeURL, TranscriptNotAvailable, VideoNotFound
+from src.api.indexing import router as index_router
+
+from src.api.transcript import router as transcript_router
+from src.api.chunking import router as chunking_router
+from src.api.embedding import router as embedding_router
 
 settings = get_settings()
 
@@ -56,8 +59,14 @@ async def video_not_found_handler(request: Request, exc: VideoNotFound) -> JSONR
     )
 
 
-#  Routers 
+#  Testing Routers 
 app.include_router(transcript_router, prefix="/api/v1")
+app.include_router(chunking_router, prefix="/api/v1")
+app.include_router(embedding_router, prefix="/api/v1")
+
+
+#  Main pipeline flow Router
+app.include_router(index_router, prefix="/api/v1")
 
 
 #  Health Check 
