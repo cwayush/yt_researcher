@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from src.config.settings import get_settings
 from src.api.exceptions import InvalidYouTubeURL, TranscriptNotAvailable, VideoNotFound
 from src.api.indexing import router as index_router
+from src.api.retrieval import router as query_router
 
 from src.api.transcript import router as transcript_router
 from src.api.chunking import router as chunking_router
@@ -55,8 +56,7 @@ async def transcript_not_available_handler(request: Request, exc: TranscriptNotA
 async def video_not_found_handler(request: Request, exc: VideoNotFound) -> JSONResponse:
     return JSONResponse(
         status_code=404,
-        content={"error": "video_not_found", "detail": str(exc), "video_id": exc.video_id},
-    )
+        content={"error": "video_not_found", "detail": str(exc), "video_id": exc.video_id})
 
 
 #  Testing Routers 
@@ -67,6 +67,10 @@ app.include_router(embedding_router, prefix="/api/v1")
 
 #  Main pipeline flow Router
 app.include_router(index_router, prefix="/api/v1")
+
+
+#  Retrieval Query Router
+app.include_router(query_router, prefix="/api/v1")
 
 
 #  Health Check 

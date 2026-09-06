@@ -15,6 +15,7 @@ class VectorStore(ABC):
     @abstractmethod
     def search(self,
                vector: list[float],
+               video_id: str,
                limit: int = 5):
         
         raise NotImplementedError

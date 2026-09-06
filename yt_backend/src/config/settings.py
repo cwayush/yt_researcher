@@ -30,17 +30,19 @@ class Settings(BaseSettings):
         extra="ignore",  # silently ignore unknown env vars
     )
 
-    # LLM Providers 
+    # LLM Providers and API Key(for generation final output)
     google_api_key: str | None = None
-    google_model: str = "gemini-2.0-flash"
+    google_generation_model: str
 
     # Embedding Models and dimensions
-    google_embedding_model: str = "gemini-embedding-001"
+    google_embedding_model: str
     google_embedding_dimensions: int = 768
 
     openai_api_key: str | None = None
 
-    groq_api_key: str | None = None
+    # LLM Providers and API Key(for generation final output)
+    groq_api_key: str
+    groq_model: str
 
     # Embedding & Search 
     hf_token: str | None = None
@@ -67,6 +69,7 @@ class Settings(BaseSettings):
 
     # PostgreSQl database url(which use for storing parent chunks context)
     database_url: str
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
