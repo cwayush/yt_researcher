@@ -19,15 +19,23 @@ class QdrantVectorStore(VectorStore):
         self._ensure_collection(vector_size)
 
 
-    def _ensure_collection(self,vector_size: int) -> None:
+    def _ensure_collection(self, vector_size: int) -> None:
 
-        if self._client.collection_exists(self._collection_name):
-            return 
+        if not self._client.collection_exists(self._collection_name):
+            
+            self._client.create_collection(
+                collection_name=self._collection_name,
+                vectors_config=models.VectorParams(
+                    size=vector_size,
+                    distance=models.Distance.COSINE,
+                ),
+            )
 
-        self._client.create_collection(collection_name=self._collection_name,
-                                       vectors_config=models.VectorParams(size=vector_size,
-                                                                          distance=models.Distance.COSINE)
-                                                                          )
+        self._client.create_payload_index(
+            collection_name=self._collection_name,
+            field_name="video_id",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+        )
 
 
     def add_chunks(self,
@@ -67,9 +75,22 @@ class QdrantVectorStore(VectorStore):
 
     def search(self,
                vector: list[float],
+               video_id: str,
                limit: int = 5):
-        
-        return self._client.query_points(collection_name=self._collection_name,
-                                         query=vector,
-                                         limit=limit,
-                                         with_payload=True)
+
+        return self._client.query_points(
+            collection_name=self._collection_name,
+            query=vector,
+            query_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="video_id",
+                        match=models.MatchValue(
+                            value=video_id,
+                        ),
+                    )
+                ]
+            ),
+            limit=limit,
+            with_payload=True,
+        )

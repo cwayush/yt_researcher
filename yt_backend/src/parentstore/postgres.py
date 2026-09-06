@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from src.parentstore.base import ParentStore
 from src.models.chunks import ParentChunk
 from src.database.models import ParentChunkRecord
@@ -14,7 +14,14 @@ class PostgresParentStore(ParentStore):
         if not parents:
             return
 
+        video_id = parents[0].video_id
+
         with self._session_factory() as session:
+
+            session.execute(delete(ParentChunkRecord).where(
+                ParentChunkRecord.video_id == video_id)
+            )
+
             records = [
                 ParentChunkRecord(
                     chunk_id=parent.chunk_id,
