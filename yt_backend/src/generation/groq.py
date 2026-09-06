@@ -1,5 +1,6 @@
 from langchain_groq import ChatGroq
 from src.generation.base import GenerationProvider
+from src.generation.prompts import GROUNDED_QA_PROMPT
 
 
 class GroqGenerationProvider(GenerationProvider):
@@ -10,25 +11,11 @@ class GroqGenerationProvider(GenerationProvider):
 
     def generate(self, question: str, context: str) -> str:
 
-        prompt = f"""
-                    You are answering a question using only the provided
-                    YouTube transcript context.
+        messages = GROUNDED_QA_PROMPT.format_messages(
+                    question=question,
+                    context=context,
+                )
 
-                    If the answer cannot be found in the context,
-                    say that the information is not available in the
-                    provided transcript.
-
-                    Do not invent facts.
-
-                    Question:
-                    {question}
-
-                    Transcript context:
-                    {context}
-
-                    Answer:
-                """
-
-        response = self._client.invoke(prompt)
+        response = self._client.invoke(messages)
 
         return response.content or ""

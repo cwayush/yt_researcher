@@ -1,36 +1,21 @@
-from google import genai
+from langchain_google_genai import ChatGoogleGenerativeAI
 from src.generation.base import GenerationProvider
+from src.generation.prompts import GROUNDED_QA_PROMPT
 
 class GeminiGenerationProvider(GenerationProvider):
 
     def __init__(self, api_key: str, model: str) -> None:
 
-        self._client = genai.Client(api_key=api_key)
-        self._model = model
+        self._client = ChatGoogleGenerativeAI(api_key=api_key,model=model)
 
 
     def generate(self, question: str, context: str) -> str:
 
-        prompt = f"""
-                    You are answering a question using only the provided
-                    YouTube transcript context.
+        messages = GROUNDED_QA_PROMPT.format_messages(
+            question=question,
+            context=context,
+        )
 
-                    If the answer cannot be found in the context,
-                    say that the information is not available in the
-                    provided transcript.
+        response = self._client.invoke(messages)
 
-                    Do not invent facts.
-
-                    Question:
-                    {question}
-
-                    Transcript context:
-                    {context}
-
-                    Answer:
-                """
-
-        response = self._client.models.generate_content(model=self._model,
-                                                        contents=prompt)
-
-        return response.text or ""
+        return response.content or ""
