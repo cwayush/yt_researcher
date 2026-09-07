@@ -19,3 +19,9 @@ class VectorStore(ABC):
                limit: int = 5):
         
         raise NotImplementedError
+
+
+    @abstractmethod
+    def get_chunks(self, video_id: str):
+
+        raise NotImplementedError

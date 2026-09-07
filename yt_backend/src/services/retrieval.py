@@ -22,8 +22,9 @@ class RetrievalService:
         query_vector = self._embedding_service.embed_query(question)
 
         # 2. Call the retrievalpipline and get context before llm process
-        context  = self._retrieval_pipeline.run(query_vector=query_vector,
-                                                video_id=video_id,
+        context  = self._retrieval_pipeline.run(video_id=video_id,
+                                                query=question,
+                                                query_vector=query_vector,
                                                 limit=limit)
 
         # 3. Process that context with llm model for refining

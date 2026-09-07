@@ -3,6 +3,7 @@ from qdrant_client import QdrantClient, models
 from src.models.embedding import EmbeddedChunk
 from src.vectorstore.base import VectorStore
 from src.models.vectorstore import VectorStoreResult
+from src.models.retrieval import RetrievedChunk
 
 
 class QdrantVectorStore(VectorStore):
@@ -94,3 +95,53 @@ class QdrantVectorStore(VectorStore):
             limit=limit,
             with_payload=True,
         )
+
+
+    def get_chunks(self, video_id: str) -> list[RetrievedChunk]:
+
+        results: list[RetrievedChunk] = []
+
+        offset = None
+
+        while True:
+            points, offset = self._client.scroll(
+                collection_name=self._collection_name,
+                scroll_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="video_id",
+                            match=models.MatchValue(value=video_id)
+                        )
+                    ]
+                ),
+                limit=256,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False
+            )
+
+            for point in points:
+                payload = point.payload or {}
+
+                results.append(
+                    RetrievedChunk(
+                        chunk_id=payload["chunk_id"],
+                        parent_id=payload["parent_id"],
+                        video_id=payload["video_id"],
+                        text=payload["text"],
+                        score=0.0,
+                        start=float(payload["start"]),
+                        end=float(payload["end"]),
+                        sentence_indices=payload.get(
+                            "sentence_indices",
+                            [],
+                        ),
+                        token_count=int(payload.get("token_count", 0)),
+                        source="bm25",
+                    )
+                )
+
+            if offset is None:
+                break
+
+        return results

@@ -15,6 +15,8 @@ from src.retrieval.dense.retriever import DenseRetriever
 from src.retrieval.parent.expander import ParentExpander
 from src.retrieval.context.builder import ContextBuilder
 from src.retrieval.pipeline import RetrievalPipeline
+from src.retrieval.keyword.bm25 import BM25Retriever
+
 
 
 def create_transcript_service() -> TranscriptService:
@@ -86,6 +88,8 @@ def create_retrieval_service() -> RetrievalService:
 
     dense_retriever = DenseRetriever(vector_store=vector_store)
 
+    keyword_retriever = BM25Retriever(vector_store=vector_store)
+
     parent_store = create_parent_store()
 
     parent_expander = ParentExpander(parent_store=parent_store)
@@ -93,6 +97,7 @@ def create_retrieval_service() -> RetrievalService:
     context_builder = ContextBuilder()
 
     retrieval_pipeline = RetrievalPipeline(dense_retriever=dense_retriever,
+                                           keyword_retriever=keyword_retriever,
                                            parent_expander=parent_expander,
                                            context_builder=context_builder)
 
@@ -101,3 +106,5 @@ def create_retrieval_service() -> RetrievalService:
     return RetrievalService(embedding_service=embedding_service,
                             retrieval_pipeline=retrieval_pipeline,
                             generation_service=generation_service)
+
+
