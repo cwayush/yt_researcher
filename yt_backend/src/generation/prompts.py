@@ -23,3 +23,37 @@ GROUNDED_QA_PROMPT = ChatPromptTemplate.from_messages(
             Answer:
             """
         )])
+
+OUT_OF_SCOPE_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """
+            You are a helpful assistant for a YouTube video.
+
+            The retrieval system could not find sufficiently relevant
+            information in the video's transcript to answer the user's question.
+
+            Do not answer the question using your general knowledge.
+
+            Instead:
+            - Politely explain that the question is outside the scope
+            of the video or that the video does not contain enough
+            relevant information.
+            - Briefly explain what the video is about when that
+            information is available.
+            - Suggest that the user ask something related to the video's topic.
+            - Keep the response natural, concise, and respectful.
+            - End with a warm and friendly sentence.
+            """),
+        (
+            "human",
+            """
+            Video topic/information: {video_info}
+
+            User question: {question}
+
+            Response:
+            """)
+        ]
+    )

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from src.models.chunks import ParentChunk
+from src.models.context import BuiltContext
 
 class RetrievedChunk(BaseModel):
     
@@ -12,6 +13,7 @@ class RetrievedChunk(BaseModel):
     end: float
     sentence_indices: list[int]
     token_count: int
+    source: str = "dense"
 
 
 class RetrievalRequest(BaseModel):
@@ -34,3 +36,8 @@ class RetrievalResponse(BaseModel):
 class RetrievedParent(BaseModel):
     parent: ParentChunk
     relevance_score: float
+
+
+class RetrievalResult(BaseModel):
+    context: BuiltContext | None = None
+    confident: bool

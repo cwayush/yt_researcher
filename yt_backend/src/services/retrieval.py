@@ -28,6 +28,18 @@ class RetrievalService:
                                                 limit=limit)
 
         # 3. Process that context with llm model for refining
-        result = self._generation_service.generate(question=question, context=context)
+        if not context.confident:
 
-        return result
+            return self._generation_service.generate_out_of_scope(
+                question=question,
+                video_info="")
+
+        if context.context is None:
+            return self._generation_service.generate_out_of_scope(
+                question=question,
+                video_info="",
+            )
+        
+        return self._generation_service.generate(
+            question=question, 
+            context=context.context)

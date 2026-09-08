@@ -9,7 +9,11 @@ class GeminiGenerationProvider(GenerationProvider):
         self._client = ChatGoogleGenerativeAI(api_key=api_key,model=model)
 
 
-    def generate(self, question: str, context: str) -> str:
+    def generate(self, 
+                 question: str, 
+                 context: str,
+                 mode: str = "grounded",
+                 video_info: str = "") -> str:
 
         messages = GROUNDED_QA_PROMPT.format_messages(
             question=question,

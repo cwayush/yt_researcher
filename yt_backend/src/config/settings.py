@@ -70,6 +70,17 @@ class Settings(BaseSettings):
     # PostgreSQl database url(which use for storing parent chunks context)
     database_url: str
 
+    # RRFFusion constant(k)
+    rrf_k: int
+
+    retrieval_candidate_limit: int
+    retrieval_final_limit: int
+
+    # Reranking Model and Minimum score for each res
+    reranker_model: str
+    reranker_min_score: float
+
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

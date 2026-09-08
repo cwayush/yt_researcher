@@ -9,13 +9,17 @@ from src.parentstore.postgres import PostgresParentStore
 from src.database.connection import SessionFactory
 from src.services.retrieval import RetrievalService
 from src.services.generation import GenerationService
-from src.generation.gemini import GeminiGenerationProvider
+# from src.generation.gemini import GeminiGenerationProvider
 from src.generation.groq import GroqGenerationProvider
 from src.retrieval.dense.retriever import DenseRetriever
 from src.retrieval.parent.expander import ParentExpander
 from src.retrieval.context.builder import ContextBuilder
 from src.retrieval.pipeline import RetrievalPipeline
 from src.retrieval.keyword.bm25 import BM25Retriever
+from src.retrieval.fusion.rrf import RRFFusion
+from src.retrieval.deduplication.deduplicator import ExactDeduplicator
+from src.retrieval.reranking.cross_encoder import CrossEncoderReranker
+from src.retrieval.confidence.checker import RerankerConfidenceChecker
 
 
 
@@ -81,6 +85,7 @@ def create_indexing_service() -> IndexingService:
 
 
 def create_retrieval_service() -> RetrievalService:
+    settings = get_settings()
 
     embedding_service = create_embedding_service()
 
@@ -90,16 +95,29 @@ def create_retrieval_service() -> RetrievalService:
 
     keyword_retriever = BM25Retriever(vector_store=vector_store)
 
+    rrf_fusion = RRFFusion(k=settings.rrf_k)
+
+    deduplicator = ExactDeduplicator()
+
     parent_store = create_parent_store()
+
+    reranker = CrossEncoderReranker(model_name=settings.reranker_model)
+
+    confidence_checker = RerankerConfidenceChecker(min_score=settings.reranker_min_score)
 
     parent_expander = ParentExpander(parent_store=parent_store)
 
     context_builder = ContextBuilder()
 
-    retrieval_pipeline = RetrievalPipeline(dense_retriever=dense_retriever,
-                                           keyword_retriever=keyword_retriever,
-                                           parent_expander=parent_expander,
-                                           context_builder=context_builder)
+    retrieval_pipeline = RetrievalPipeline(
+        dense_retriever=dense_retriever,
+        keyword_retriever=keyword_retriever,
+        rrf_fusion=rrf_fusion,
+        deduplicator=deduplicator,
+        reranker=reranker,
+        confidence_checker=confidence_checker,
+        parent_expander=parent_expander,
+        context_builder=context_builder)
 
     generation_service = create_generation_service()
 

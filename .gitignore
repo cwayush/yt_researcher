@@ -1,6 +1,7 @@
 # Internal docs (local-only analysis files)
 /ARCHITECTURE.md
 /codebase_analysis.md
+/PROJECT_FLOW.md
 
 # Editor / AI tool configs
 /opencode.json
