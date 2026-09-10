@@ -1,0 +1,261 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand primitives. Fixed in both themes, referenced by the semantic layer. */
+:root {
+  --brand-cream: #ffffeb;
+  --brand-forest: #034f46;
+  --brand-forest-mid: #14685d;
+  --brand-forest-light: #4fb8a4;
+  --brand-amber: #ffa946;
+  --brand-amber-deep: #b45309;
+  --brand-gold: #ffc078;
+}
+
+/* Semantic roles: light. These are the only colours components should use. */
+:root {
+  --background: var(--brand-cream);
+  --surface: #ffffff;
+  --surface-muted: #e4e4d0;
+
+  --foreground: #1a1a1a;
+  --foreground-soft: #55554f;
+  --foreground-muted: #8a8a80;
+
+  --border: #e4e4d0;
+  --border-strong: #d4d4c0;
+
+  /* Primary action: forest green */
+  --primary: var(--brand-forest);
+  --primary-hover: #023a34;
+  --primary-border: rgb(3 79 70 / 0.35);
+  --primary-foreground: var(--brand-cream);
+  --primary-accent: #55554f;
+
+  --success: var(--brand-forest);
+  --warning: var(--brand-amber);
+  --warning-ink: var(--brand-amber-deep);
+  --danger: #dc2626;
+
+  /* Retrieval inspector reads as diagnostics, so it sits off the palette. */
+  --terminal-surface: #0f172a;
+  --terminal-border: #1e293b;
+  --terminal-foreground: #e2e8f0;
+  --terminal-muted: #64748b;
+}
+
+/* Semantic roles: dark. Warm olive ground, accents lifted for contrast. */
+.dark {
+  --background: #12130e;
+  --surface: #1b1c15;
+  --surface-muted: #2a2b20;
+
+  --foreground: #f2f2e4;
+  --foreground-soft: #b9b9a8;
+  --foreground-muted: #8a8a7b;
+
+  --border: #2e2f24;
+  --border-strong: #3d3e30;
+
+  --primary: var(--brand-forest-mid);
+  --primary-hover: #1a7a6d;
+  --primary-border: rgb(79 184 164 / 0.3);
+  --primary-foreground: #f2f2e4;
+  --primary-accent: var(--brand-forest-light);
+
+  --success: var(--brand-forest-light);
+  --warning: var(--brand-amber);
+  --warning-ink: var(--brand-gold);
+  --danger: #f87171;
+
+  --terminal-surface: #0b0f1a;
+  --terminal-border: #1e293b;
+  --terminal-foreground: #e2e8f0;
+  --terminal-muted: #64748b;
+}
+
+/* Bind semantic roles to Tailwind utilities. `inline` keeps the var()
+   reference in the output, so a single .dark class flips everything. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-muted: var(--foreground-muted);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-border: var(--primary-border);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-accent: var(--primary-accent);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-danger: var(--danger);
+
+  --color-terminal: var(--terminal-surface);
+  --color-terminal-border: var(--terminal-border);
+  --color-terminal-foreground: var(--terminal-foreground);
+  --color-terminal-muted: var(--terminal-muted);
+
+  /* Fixed brand colours, for the forest band that owns its own ground. */
+  --color-cream: var(--brand-cream);
+  --color-forest: var(--brand-forest);
+  --color-gold: var(--brand-gold);
+}
+
+@theme {
+  --font-display: "EB Garamond", Georgia, serif;
+  --font-sans:
+    "Figtree", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  --text-display-xl: clamp(2.75rem, 7vw, 4.5rem);
+  --text-display-xl--line-height: 1.05;
+  --text-display: clamp(2rem, 4vw, 2.75rem);
+  --text-display--line-height: 1.12;
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 1.25;
+  --text-h4: 1.5rem;
+  --text-h4--line-height: 1.3;
+  --text-lead: clamp(1rem, 2.5vw, 1.125rem);
+  --text-lead--line-height: 1.65;
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.7;
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.5;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.4;
+
+  /* Page measure. --container-shell adds the navbar gutter so PageContainer
+     can reproduce the navbar inset with a single element. */
+  --container-page: 1000px;
+  --container-shell: 1300px;
+  --container-hero: 680px;
+  --container-panel: 600px;
+  --container-input: 560px;
+  --container-measure: 540px;
+  --container-narrow: 480px;
+
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-panel: 15px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Timestamps and technical metadata */
+@utility font-mono-ts {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+/* Vertical rhythm shared by every landing section */
+@utility section-y {
+  padding-block: calc(var(--spacing) * 20);
+  @media (width >= 48rem) {
+    padding-block: calc(var(--spacing) * 28);
+  }
+}
+
+@utility border-hairline {
+  border-width: 1.5px;
+}
+
+/* Search fields ship their own clear button, so hide the browser's */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 1s ease-in-out infinite;
+}
+
+.animate-fade-rise {
+  animation: fade-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
