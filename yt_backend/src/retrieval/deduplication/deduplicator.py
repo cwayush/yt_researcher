@@ -1,7 +1,8 @@
 from src.models.retrieval import RetrievedChunk
+from src.retrieval.deduplication.base import Deduplicator
 
 
-class ExactDeduplicator:
+class ExactDeduplicator(Deduplicator):
 
     def deduplicate(self, results: list[RetrievedChunk]) -> list[RetrievedChunk]:
 
@@ -17,4 +18,3 @@ class ExactDeduplicator:
             unique_results.append(result)
 
         return unique_results
-        

@@ -12,18 +12,13 @@ class ParentChunker(Chunker[ParentChunk]):
 
     def __init__(self,
                  tokenizer:Tokenizer,
-                 min_tokens:int = 600,
                  max_tokens:int = 1200
         ) -> None:
-        
-        if min_tokens <= 0:
-            raise ValueError("Min Token must be greater than 0")
 
-        if max_tokens < min_tokens:
-            raise ValueError("Max Tokens must be greater or equal to Min Tokens")
+        if max_tokens <= 0:
+            raise ValueError("Max Tokens must be greater than 0")
 
         self._tokenizer = tokenizer
-        self._min_tokens = min_tokens
         self._max_tokens = max_tokens
 
     def _build_parent(

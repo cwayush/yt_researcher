@@ -2,7 +2,7 @@ import re
 from rank_bm25 import BM25Okapi
 from src.vectorstore.base import VectorStore
 from src.models.retrieval import RetrievedChunk
-from src.retrieval.keyword.retriever import KeywordRetriever
+from src.retrieval.keyword.base import KeywordRetriever
 
 class BM25Retriever(KeywordRetriever):
 

@@ -1,5 +1,5 @@
 """
-Transcript API route — thin HTTP layer.
+Transcript API route - thin HTTP layer.
 
 Responsibilities:
     1. Parse and validate the incoming request.
@@ -10,15 +10,17 @@ Responsibilities:
 No business logic lives here.
 """
 
-from fastapi import APIRouter
-from src.models.transcript import TranscriptResponse
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+
+from src.container import get_transcript_service
 from src.models.index import IndexRequest
+from src.models.transcript import TranscriptResponse
 from src.services.transcript import TranscriptService
 
 
 router = APIRouter(tags=["Transcript"])
-
-_service = TranscriptService()
 
 
 @router.post("/transcript",
@@ -28,8 +30,9 @@ _service = TranscriptService()
                  "Accepts a YouTube URL, fetches the transcript, normalises the text, "
                  "and reconstructs logical sentences with preserved timestamps."),
 )
-def get_transcript(request: IndexRequest) -> TranscriptResponse:
+def get_transcript(request: IndexRequest,
+                   service: Annotated[TranscriptService, Depends(get_transcript_service)]) -> TranscriptResponse:
 
-    video_id, sentences = _service.prepare(request.url)
+    video_id, sentences = service.prepare(request.url)
 
-    return TranscriptResponse.from_sentences(video_id=video_id,sentences=sentences)
+    return TranscriptResponse.from_sentences(video_id=video_id, sentences=sentences)

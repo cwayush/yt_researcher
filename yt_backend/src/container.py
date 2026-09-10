@@ -1,37 +1,58 @@
+"""
+Composition root.
+
+Builds and wires every concrete implementation the application needs.
+This is the only module that knows which provider backs each interface,
+so swapping Groq for Gemini, or Qdrant for another vector store, is a
+single-line change here.
+
+Every factory is cached with lru_cache, which makes each dependency a
+process-wide singleton. That matters because these objects own expensive
+resources: HTTP clients, a database engine, and the cross-encoder model.
+FastAPI routes depend on these factories through Depends(), so nothing is
+constructed until the first request that actually needs it.
+"""
+
+from functools import lru_cache
+
 from src.config.settings import get_settings
-from src.services.transcript import TranscriptService
-from src.services.indexing import IndexingService
-from src.chunking.service import ChunkingService
-from src.embeddings.service import EmbeddingService
-from src.embeddings.gemini import GoogleEmbeddingProvider
-from src.vectorstore.qdrant import QdrantVectorStore
-from src.parentstore.postgres import PostgresParentStore
 from src.database.connection import SessionFactory
-from src.services.retrieval import RetrievalService
-from src.services.generation import GenerationService
-# from src.generation.gemini import GeminiGenerationProvider
+
+from src.chunking.service import ChunkingService
+from src.embeddings.gemini import GoogleEmbeddingProvider
+from src.embeddings.service import EmbeddingService
 from src.generation.groq import GroqGenerationProvider
-from src.retrieval.dense.retriever import DenseRetriever
-from src.retrieval.parent.expander import ParentExpander
-from src.retrieval.context.builder import ContextBuilder
-from src.retrieval.pipeline import RetrievalPipeline
-from src.retrieval.keyword.bm25 import BM25Retriever
-from src.retrieval.fusion.rrf import RRFFusion
-from src.retrieval.deduplication.deduplicator import ExactDeduplicator
-from src.retrieval.reranking.cross_encoder import CrossEncoderReranker
+from src.parentstore.postgres import PostgresParentStore
+from src.vectorstore.qdrant import QdrantVectorStore
+
 from src.retrieval.confidence.checker import RerankerConfidenceChecker
+from src.retrieval.context.builder import ContextBuilder
+from src.retrieval.deduplication.deduplicator import ExactDeduplicator
+from src.retrieval.dense.retriever import DenseRetriever
+from src.retrieval.fusion.rrf import RRFFusion
+from src.retrieval.keyword.bm25 import BM25Retriever
+from src.retrieval.parent.expander import ParentExpander
+from src.retrieval.pipeline import RetrievalPipeline
+from src.retrieval.reranking.cross_encoder import CrossEncoderReranker
+
+from src.services.generation import GenerationService
+from src.services.indexing import IndexingService
+from src.services.retrieval import RetrievalService
+from src.services.transcript import TranscriptService
 
 
-
-def create_transcript_service() -> TranscriptService:
+@lru_cache(maxsize=1)
+def get_transcript_service() -> TranscriptService:
     return TranscriptService()
 
 
-def create_chunking_service() -> ChunkingService:
+@lru_cache(maxsize=1)
+def get_chunking_service() -> ChunkingService:
     return ChunkingService()
 
 
-def create_embedding_service() -> EmbeddingService:
+@lru_cache(maxsize=1)
+def get_embedding_service() -> EmbeddingService:
     settings = get_settings()
 
     provider = GoogleEmbeddingProvider(
@@ -43,7 +64,8 @@ def create_embedding_service() -> EmbeddingService:
     return EmbeddingService(provider=provider)
 
 
-def create_vector_store() -> QdrantVectorStore:
+@lru_cache(maxsize=1)
+def get_vector_store() -> QdrantVectorStore:
     settings = get_settings()
 
     return QdrantVectorStore(
@@ -54,75 +76,56 @@ def create_vector_store() -> QdrantVectorStore:
     )
 
 
-def create_parent_store() -> PostgresParentStore:
-    return PostgresParentStore(
-        session_factory=SessionFactory,
-    )
+@lru_cache(maxsize=1)
+def get_parent_store() -> PostgresParentStore:
+    return PostgresParentStore(session_factory=SessionFactory)
 
 
-def create_generation_service() -> GenerationService:
-
+@lru_cache(maxsize=1)
+def get_generation_service() -> GenerationService:
     settings = get_settings()
 
-    # provider = GeminiGenerationProvider(api_key=settings.google_api_key,
-    #                                     model=settings.google_generation_model)
-    
     provider = GroqGenerationProvider(api_key=settings.groq_api_key,
-                                        model=settings.groq_model)
+                                      model=settings.groq_model)
 
     return GenerationService(provider=provider)
 
 
-def create_indexing_service() -> IndexingService:
-
+@lru_cache(maxsize=1)
+def get_indexing_service() -> IndexingService:
     return IndexingService(
-        transcript_service=create_transcript_service(),
-        chunking_service=create_chunking_service(),
-        embedding_service=create_embedding_service(),
-        vector_store=create_vector_store(),
-        parent_store=create_parent_store(),
+        transcript_service=get_transcript_service(),
+        chunking_service=get_chunking_service(),
+        embedding_service=get_embedding_service(),
+        vector_store=get_vector_store(),
+        parent_store=get_parent_store(),
     )
 
 
-def create_retrieval_service() -> RetrievalService:
+@lru_cache(maxsize=1)
+def get_retrieval_pipeline() -> RetrievalPipeline:
     settings = get_settings()
 
-    embedding_service = create_embedding_service()
+    vector_store = get_vector_store()
 
-    vector_store = create_vector_store()
-
-    dense_retriever = DenseRetriever(vector_store=vector_store)
-
-    keyword_retriever = BM25Retriever(vector_store=vector_store)
-
-    rrf_fusion = RRFFusion(k=settings.rrf_k)
-
-    deduplicator = ExactDeduplicator()
-
-    parent_store = create_parent_store()
-
-    reranker = CrossEncoderReranker(model_name=settings.reranker_model)
-
-    confidence_checker = RerankerConfidenceChecker(min_score=settings.reranker_min_score)
-
-    parent_expander = ParentExpander(parent_store=parent_store)
-
-    context_builder = ContextBuilder()
-
-    retrieval_pipeline = RetrievalPipeline(
-        dense_retriever=dense_retriever,
-        keyword_retriever=keyword_retriever,
-        rrf_fusion=rrf_fusion,
-        deduplicator=deduplicator,
-        reranker=reranker,
-        confidence_checker=confidence_checker,
-        parent_expander=parent_expander,
-        context_builder=context_builder)
-
-    generation_service = create_generation_service()
-
-    return RetrievalService(embedding_service=embedding_service,
-                            retrieval_pipeline=retrieval_pipeline,
-                            generation_service=generation_service)
+    return RetrievalPipeline(
+        dense_retriever=DenseRetriever(vector_store=vector_store),
+        keyword_retriever=BM25Retriever(vector_store=vector_store),
+        rrf_fusion=RRFFusion(k=settings.rrf_k),
+        deduplicator=ExactDeduplicator(),
+        reranker=CrossEncoderReranker(model_name=settings.reranker_model),
+        confidence_checker=RerankerConfidenceChecker(min_score=settings.reranker_min_score),
+        parent_expander=ParentExpander(parent_store=get_parent_store()),
+        context_builder=ContextBuilder(),
+        candidate_limit=settings.retrieval_candidate_limit,
+        final_limit=settings.retrieval_final_limit,
+    )
 
 
+@lru_cache(maxsize=1)
+def get_retrieval_service() -> RetrievalService:
+    return RetrievalService(
+        embedding_service=get_embedding_service(),
+        retrieval_pipeline=get_retrieval_pipeline(),
+        generation_service=get_generation_service(),
+    )

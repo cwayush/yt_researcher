@@ -14,19 +14,13 @@ class ChildChunker(Chunker[ChildChunk]):
     def __init__(
         self,
         tokenizer: Tokenizer,
-        min_tokens: int = 300,
         max_tokens: int = 600,
         overlap_sentences: int = 1,
     ) -> None:
 
-        if min_tokens <= 0:
+        if max_tokens <= 0:
             raise ValueError(
-                "min_tokens must be greater than 0"
-            )
-
-        if max_tokens < min_tokens:
-            raise ValueError(
-                "max_tokens must be >= min_tokens"
+                "max_tokens must be greater than 0"
             )
 
         if overlap_sentences < 0:
@@ -35,7 +29,6 @@ class ChildChunker(Chunker[ChildChunk]):
             )
 
         self._tokenizer = tokenizer
-        self._min_tokens = min_tokens
         self._max_tokens = max_tokens
         self._overlap_sentences = overlap_sentences
 
@@ -120,7 +113,3 @@ class ChildChunker(Chunker[ChildChunk]):
             )
 
         return children
-
-    
-
-    

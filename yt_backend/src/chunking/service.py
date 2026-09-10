@@ -7,9 +7,9 @@ from src.models.transcript import Sentence
 
 class ChunkingService:
     """
-    Application serivce responsible for hierarchical transcript chunking.
+    Application service responsible for hierarchical transcript chunking.
 
-    This service done not know anything about FastAPI, HTTP requests, database or embeddings.
+    This service does not know anything about FastAPI, HTTP requests, database or embeddings.
     """
 
     def __init__(self,
@@ -22,11 +22,9 @@ class ChunkingService:
         tokenizer = Tokenizer()
 
         parent_chunker = ParentChunker(tokenizer=tokenizer,
-                                       min_tokens=600,
                                        max_tokens=1200)
 
         child_chunker = ChildChunker(tokenizer=tokenizer,
-                                     min_tokens=300,
                                      max_tokens=600,
                                      overlap_sentences=1)
 

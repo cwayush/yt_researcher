@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from src.models.chunks import ParentChunk
 from src.models.context import BuiltContext
 
 class RetrievedChunk(BaseModel):
@@ -31,11 +30,6 @@ class Evidence(BaseModel):
 class RetrievalResponse(BaseModel):
     answer: str
     evidence: list[Evidence]
-
-
-class RetrievedParent(BaseModel):
-    parent: ParentChunk
-    relevance_score: float
 
 
 class RetrievalResult(BaseModel):

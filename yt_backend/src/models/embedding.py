@@ -23,13 +23,3 @@ class EmbeddedResponse(BaseModel):
     video_id: str
 
     embeddings: list[EmbeddedChunk]
-
-    @classmethod
-    def from_embedding(cls,
-                    video_id: str,
-                    embeddings: list[EmbeddedChunk]) -> "EmbeddedResponse":
-
-        return cls(
-            video_id=video_id,
-            embeddings=embeddings
-        )

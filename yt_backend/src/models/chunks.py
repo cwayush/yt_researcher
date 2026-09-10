@@ -60,17 +60,3 @@ class ChunkResponse(BaseModel):
 
     parents: list[ParentChunk]
     children: list[ChildChunk]
-
-    @classmethod
-    def from_chunks(cls,
-                    video_id: str,
-                    parents: list[ParentChunk],
-                    children: list[ChildChunk]) -> "ChunkResponse":
-
-        return cls(
-            video_id=video_id,
-            parent_count=len(parents),
-            child_count=len(children),
-            parents=parents,
-            children=children,
-        )

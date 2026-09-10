@@ -12,15 +12,15 @@ Usage:
 """
 
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables.
 
     All fields with no default are required at startup.
-    Optional fields default to None and may be unused depending on
-    which providers are active.
     """
 
     model_config = SettingsConfigDict(
@@ -30,56 +30,50 @@ class Settings(BaseSettings):
         extra="ignore",  # silently ignore unknown env vars
     )
 
-    # LLM Providers and API Key(for generation final output)
-    google_api_key: str | None = None
-    google_generation_model: str
-
-    # Embedding Models and dimensions
+    # Google: embeddings (required: every index and query call embeds text)
+    google_api_key: str
     google_embedding_model: str
     google_embedding_dimensions: int = 768
 
-    openai_api_key: str | None = None
-
-    # LLM Providers and API Key(for generation final output)
+    # Groq: answer generation
     groq_api_key: str
     groq_model: str
 
-    # Embedding & Search 
+    # Hugging Face: used by sentence-transformers when the reranker model is gated
     hf_token: str | None = None
 
-    # LangSmith Observability 
+    # LangSmith observability - read from the process environment by the
+    # LangChain SDK itself; declared here so startup fails loudly if a
+    # malformed value is present.
     langchain_api_key: str | None = None
     langchain_project: str | None = None
 
-    # Tavily Web Search 
-    tavily_api_key: str | None = None
-
-    # Application 
+    # Application
     app_name: str = "YouTube Researcher API"
     app_version: str = "0.1.0"
     debug: bool = False
 
-    # Transcript Processing 
+    # Transcript processing
     sentence_pause_threshold: float = 2.0  # seconds between segments to force sentence break
 
-    # Quant vector database configuration
+    # Qdrant vector database: stores child chunk vectors
     qdrant_url: str
     qdrant_api_key: str | None = None
     qdrant_collection: str = "youtube_chunks"
 
-    # PostgreSQl database url(which use for storing parent chunks context)
+    # PostgreSQL: stores parent chunks for context expansion
     database_url: str
 
-    # RRFFusion constant(k)
+    # Reciprocal Rank Fusion constant
     rrf_k: int
 
+    # Retrieval funnel: candidates fetched per retriever, then survivors after reranking
     retrieval_candidate_limit: int
     retrieval_final_limit: int
 
-    # Reranking Model and Minimum score for each res
+    # Cross-encoder reranking
     reranker_model: str
     reranker_min_score: float
-
 
 
 @lru_cache(maxsize=1)
