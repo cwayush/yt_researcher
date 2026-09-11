@@ -13,6 +13,7 @@ Usage:
 
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -76,7 +77,7 @@ class Settings(BaseSettings):
 
     # Cross-encoder reranking
     reranker_model: str
-    reranker_min_score: float
+    reranker_min_score: float = Field(gt=0.0, lt=1.0)
 
 
 @lru_cache(maxsize=1)

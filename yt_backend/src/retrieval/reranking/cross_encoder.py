@@ -1,6 +1,12 @@
+import math
 from sentence_transformers import CrossEncoder
 from src.models.retrieval import RetrievedChunk
 from src.retrieval.reranking.base import Reranker
+
+
+def _sigmoid(value: float) -> float:
+    return 1.0 / (1.0 + math.exp(-value))
+
 
 class CrossEncoderReranker(Reranker):
 
@@ -27,7 +33,7 @@ class CrossEncoderReranker(Reranker):
             scored_results.append(
                 result.model_copy(
                     update={
-                        "score": float(score),
+                        "score": _sigmoid(float(score)),
                         "source": "reranker"
                         }
                     ))
