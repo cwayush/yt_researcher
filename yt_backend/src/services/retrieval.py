@@ -40,4 +40,5 @@ class RetrievalService:
                                                                   video_info="")
 
         return self._generation_service.generate(question=question,
-                                                 context=result.context)
+                                                 context=result.context,
+                                                 children=result.children)

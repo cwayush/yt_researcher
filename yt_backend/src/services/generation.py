@@ -1,6 +1,6 @@
 from src.models.chunks import ParentChunk
 from src.models.context import BuiltContext
-from src.models.retrieval import Evidence, RetrievalResponse
+from src.models.retrieval import Evidence, RetrievalResponse, RetrievedChunk
 from src.generation.base import GenerationProvider
 
 OVERVIEW_TOKEN_BUDGET = 6000
@@ -12,18 +12,25 @@ class GenerationService:
         self._provider = provider
 
 
-    def generate(self, question: str, context: BuiltContext) -> RetrievalResponse:
+    def generate(self,
+                 question: str,
+                 context: BuiltContext,
+                 children: list[RetrievedChunk]) -> RetrievalResponse:
+        """
+        Answer from the parents, cite the children.
+        """
 
         answer = self._provider.generate(question=question,
                                          context=context.text,
                                          mode="grounded")
 
-        evidence = [Evidence(start=source.start,
-                             end=source.end,
-                             text=source.text,
-                             relevance_score=source.relevance_score)
+        evidence = [Evidence(chunk_id=child.chunk_id,
+                             start=child.start,
+                             end=child.end,
+                             text=child.text,
+                             relevance_score=child.score)
 
-                             for source in context.sources]
+                             for child in children]
 
         return RetrievalResponse(answer=answer, evidence=evidence)
 

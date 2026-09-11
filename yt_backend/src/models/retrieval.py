@@ -21,6 +21,7 @@ class RetrievalRequest(BaseModel):
 
 
 class Evidence(BaseModel):
+    chunk_id: str
     start: float = Field(description="Start timestamp in seconds")
     end: float = Field(description="End timestamp in seconds")
     text: str
@@ -35,3 +36,4 @@ class RetrievalResponse(BaseModel):
 class RetrievalResult(BaseModel):
     context: BuiltContext | None = None
     confident: bool
+    children: list[RetrievedChunk] = Field(default_factory=list)

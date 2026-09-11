@@ -80,7 +80,8 @@ class RetrievalPipeline:
 
         parents = self._parent_expander.expand(reranked_results)
 
-        context = self._context_builder.build(children=reranked_results,
-                                              parents=parents)
+        context = self._context_builder.build(parents=parents)
 
-        return RetrievalResult(context=context, confident=True)
+        return RetrievalResult(context=context,
+                               confident=True,
+                               children=reranked_results)
