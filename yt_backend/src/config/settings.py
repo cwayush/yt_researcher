@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     # Transcript processing
     sentence_pause_threshold: float = 2.0  # seconds between segments to force sentence break
 
+    # Indexing freshness: days before an indexed video's transcript is re-checked
+    freshness_check_days: int 
+
     # Qdrant vector database: stores child chunk vectors
     qdrant_url: str
     qdrant_api_key: str | None = None

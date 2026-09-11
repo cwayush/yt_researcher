@@ -1,44 +1,18 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from src.parentstore.base import ParentStore
 from src.models.chunks import ParentChunk
 from src.database.models import ParentChunkRecord
 
 class PostgresParentStore(ParentStore):
+    """
+    Read access to parent chunks for context expansion.
+
+    Parents are written by PostgresIndexStateStore.commit_rebuild, which
+    replaces them in the same transaction that marks the video indexed.
+    """
 
     def __init__(self, session_factory):
         self._session_factory = session_factory
-
-
-    def add_parents(self, parents: list[ParentChunk]) -> None:
-
-        if not parents:
-            return
-
-        video_id = parents[0].video_id
-
-        with self._session_factory() as session:
-
-            session.execute(delete(ParentChunkRecord).where(
-                ParentChunkRecord.video_id == video_id)
-            )
-
-            records = [
-                ParentChunkRecord(
-                    chunk_id=parent.chunk_id,
-                    video_id=parent.video_id,
-                    text=parent.text,
-                    index=parent.index,
-                    start_time=parent.start,
-                    end_time=parent.end,
-                    sentence_indices=parent.sentence_indices,
-                    token_count=parent.token_count,
-                )
-
-                for parent in parents
-            ]
-
-            session.add_all(records)
-            session.commit()
 
 
     def get_by_ids(self, ids: list[str]) -> list[ParentChunk]:
@@ -63,7 +37,7 @@ class PostgresParentStore(ParentStore):
                 index=record.index,
                 sentence_indices=record.sentence_indices,
                 token_count=record.token_count
-            ) 
+            )
 
             for record in records
         ]

@@ -7,12 +7,12 @@ without changing any business logic.
 
 Usage:
     class MyProvider(TranscriptProvider):
-        def fetch(self, video_id: str) -> list[TranscriptSegment]:
+        def fetch(self, video_id: str) -> FetchedTranscript:
             ...
 """
 
 from abc import ABC, abstractmethod
-from src.models.transcript import TranscriptSegment
+from src.models.transcript import FetchedTranscript
 
 
 class TranscriptProvider(ABC):
@@ -20,11 +20,11 @@ class TranscriptProvider(ABC):
     Abstract transcript provider interface.
 
     Any concrete implementation must be able to accept a video ID string
-    and return a list of raw TranscriptSegment objects in chronological order.
+    and return a FetchedTranscript whose segments are in chronological order.
     """
 
     @abstractmethod
-    def fetch(self, video_id: str) -> list[TranscriptSegment]:
+    def fetch(self, video_id: str) -> FetchedTranscript:
         """
         Fetch the raw transcript for the given video ID.
 
@@ -32,7 +32,7 @@ class TranscriptProvider(ABC):
             video_id: The YouTube video ID (e.g. "dQw4w9WgXcQ")
 
         Returns:
-            A list of TranscriptSegment objects in chronological order.
+            A FetchedTranscript with segments in chronological order.
 
         Raises:
             TranscriptNotAvailable: If the video has no accessible transcript.

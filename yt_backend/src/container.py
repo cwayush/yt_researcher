@@ -22,6 +22,8 @@ from src.chunking.service import ChunkingService
 from src.embeddings.gemini import GoogleEmbeddingProvider
 from src.embeddings.service import EmbeddingService
 from src.generation.groq import GroqGenerationProvider
+from src.indexstate.postgres import PostgresIndexStateStore
+from src.ingestion.oembed import YoutubeOEmbedProvider
 from src.parentstore.postgres import PostgresParentStore
 from src.vectorstore.qdrant import QdrantVectorStore
 
@@ -82,6 +84,21 @@ def get_parent_store() -> PostgresParentStore:
 
 
 @lru_cache(maxsize=1)
+def get_index_state_store() -> PostgresIndexStateStore:
+    return PostgresIndexStateStore(session_factory=SessionFactory)
+
+
+@lru_cache(maxsize=1)
+def get_oembed_provider() -> YoutubeOEmbedProvider:
+    return YoutubeOEmbedProvider()
+
+
+@lru_cache(maxsize=1)
+def get_keyword_retriever() -> BM25Retriever:
+    return BM25Retriever(vector_store=get_vector_store())
+
+
+@lru_cache(maxsize=1)
 def get_generation_service() -> GenerationService:
     settings = get_settings()
 
@@ -97,8 +114,11 @@ def get_indexing_service() -> IndexingService:
         transcript_service=get_transcript_service(),
         chunking_service=get_chunking_service(),
         embedding_service=get_embedding_service(),
+        generation_service=get_generation_service(),
         vector_store=get_vector_store(),
-        parent_store=get_parent_store(),
+        index_state=get_index_state_store(),
+        oembed_provider=get_oembed_provider(),
+        keyword_retriever=get_keyword_retriever(),
     )
 
 
@@ -110,7 +130,7 @@ def get_retrieval_pipeline() -> RetrievalPipeline:
 
     return RetrievalPipeline(
         dense_retriever=DenseRetriever(vector_store=vector_store),
-        keyword_retriever=BM25Retriever(vector_store=vector_store),
+        keyword_retriever=get_keyword_retriever(),
         rrf_fusion=RRFFusion(k=settings.rrf_k),
         deduplicator=ExactDeduplicator(),
         reranker=CrossEncoderReranker(model_name=settings.reranker_model),

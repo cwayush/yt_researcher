@@ -6,7 +6,11 @@ They are separate from domain models to keep API shape independent
 from internal data transformations.
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+from src.models.index_state import VideoMetadata
 
 
 class IndexRequest(BaseModel):
@@ -24,14 +28,13 @@ class IndexRequest(BaseModel):
     
 class IndexResponse(BaseModel):
     """
-    Response returned after successfully indexing a YouTube video.
-
-    Contains the video identifier, indexing status, number of
-    parent and child chunks processed, and a status message.
+    Response returned after a video is made searchable.
     """
-    
+
     video_id: str
     indexed: bool
-    parent_count: int
-    child_count: int
+    action: Literal["indexed", "reused", "rebuilt"]
+    parent_count: int | None = None
+    child_count: int | None = None
+    metadata: VideoMetadata | None = None
     message: str

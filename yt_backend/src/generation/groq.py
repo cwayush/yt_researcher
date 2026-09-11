@@ -1,6 +1,10 @@
 from langchain_groq import ChatGroq
 from src.generation.base import GenerationProvider
-from src.generation.prompts import GROUNDED_QA_PROMPT, OUT_OF_SCOPE_PROMPT
+from src.generation.prompts import (
+    GROUNDED_QA_PROMPT,
+    OUT_OF_SCOPE_PROMPT,
+    OVERVIEW_PROMPT,
+)
 
 
 class GroqGenerationProvider(GenerationProvider):
@@ -22,6 +26,10 @@ class GroqGenerationProvider(GenerationProvider):
                 question=question,
                 video_info=video_info,
             )
+
+        elif mode == "overview":
+
+            messages = OVERVIEW_PROMPT.format_messages(context=context)
 
         else:
 

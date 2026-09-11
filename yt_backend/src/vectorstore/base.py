@@ -25,3 +25,17 @@ class VectorStore(ABC):
     def get_chunks(self, video_id: str):
 
         raise NotImplementedError
+
+
+    @abstractmethod
+    def delete_stale(self,
+                     video_id: str,
+                     keep_chunk_ids: list[str]) -> None:
+
+        raise NotImplementedError
+
+
+    @abstractmethod
+    def delete_all(self) -> int:
+
+        raise NotImplementedError

@@ -13,7 +13,7 @@ from youtube_transcript_api._errors import (
 )
 
 from src.ingestion.base import TranscriptProvider
-from src.models.transcript import TranscriptSegment
+from src.models.transcript import FetchedTranscript, TranscriptSegment
 
 
 class YoutubeTranscriptProvider(TranscriptProvider):
@@ -25,15 +25,16 @@ class YoutubeTranscriptProvider(TranscriptProvider):
     exposing library internals to callers.
     """
 
-    def fetch(self, video_id: str) -> list[TranscriptSegment]:
+    def fetch(self, video_id: str) -> FetchedTranscript:
         """
-        Fetch YouTube transcript and convert to TranscriptSegment list.
+        Fetch YouTube transcript and convert to the domain model.
 
         Args:
             video_id: The YouTube video ID string.
 
         Returns:
-            list[TranscriptSegment]: Segments in chronological order.
+            FetchedTranscript: Segments in chronological order, plus the
+            language the captions were published in.
 
         Raises:
             ValueError: If the video has no transcript or is unavailable.
@@ -49,11 +50,15 @@ class YoutubeTranscriptProvider(TranscriptProvider):
         except VideoUnavailable:
             raise ValueError(f"Video '{video_id}' is unavailable.")
 
-        return [
-            TranscriptSegment(
-                text=snippet.text,
-                start=snippet.start,
-                duration=snippet.duration,
-            )
-            for snippet in fetched
-        ]
+        return FetchedTranscript(
+            segments=[
+                TranscriptSegment(
+                    text=snippet.text,
+                    start=snippet.start,
+                    duration=snippet.duration,
+                )
+                for snippet in fetched
+            ],
+            language=fetched.language,
+            language_code=fetched.language_code,
+        )

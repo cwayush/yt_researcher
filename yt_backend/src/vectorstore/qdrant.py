@@ -32,11 +32,12 @@ class QdrantVectorStore(VectorStore):
                 ),
             )
 
-        self._client.create_payload_index(
-            collection_name=self._collection_name,
-            field_name="video_id",
-            field_schema=models.PayloadSchemaType.KEYWORD,
-        )
+        for field_name in ("video_id", "chunk_id"):
+            self._client.create_payload_index(
+                collection_name=self._collection_name,
+                field_name=field_name,
+                field_schema=models.PayloadSchemaType.KEYWORD,
+            )
 
 
     def add_chunks(self,
@@ -95,6 +96,59 @@ class QdrantVectorStore(VectorStore):
             limit=limit,
             with_payload=True,
         )
+
+
+    def delete_stale(self,
+                     video_id: str,
+                     keep_chunk_ids: list[str]) -> None:
+        """
+        Drop vectors left over from a previous version of this video.
+        """
+
+        if not keep_chunk_ids:
+            return
+
+        self._client.delete(
+            collection_name=self._collection_name,
+            points_selector=models.FilterSelector(
+                filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="video_id",
+                            match=models.MatchValue(value=video_id),
+                        )
+                    ],
+                    must_not=[
+                        models.FieldCondition(
+                            key="chunk_id",
+                            match=models.MatchAny(any=keep_chunk_ids),
+                        )
+                    ],
+                )
+            ),
+            wait=True,
+        )
+
+
+    def delete_all(self) -> int:
+        """
+        Drop every point from the application's collection.
+
+        Returns:
+            How many points were present before the delete.
+        """
+
+        deleted = self._client.count(collection_name=self._collection_name,
+                                     exact=True).count
+
+        if deleted:
+            self._client.delete(
+                collection_name=self._collection_name,
+                points_selector=models.FilterSelector(filter=models.Filter()),
+                wait=True,
+            )
+
+        return deleted
 
 
     def get_chunks(self, video_id: str) -> list[RetrievedChunk]:

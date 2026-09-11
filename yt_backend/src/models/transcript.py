@@ -27,6 +27,19 @@ class TranscriptSegment(BaseModel):
         return self.start + self.duration
 
 
+class FetchedTranscript(BaseModel):
+    """
+    A transcript as returned by an ingestion provider.
+
+    Carries the language the captions were published in alongside the segments,
+    so the indexing pipeline can record it without a second lookup.
+    """
+
+    segments: list[TranscriptSegment]
+    language: str
+    language_code: str
+
+
 class ProcessedSegment(BaseModel):
     """
     A cleaned transcript segment after normalization.
@@ -59,6 +72,24 @@ class Sentence(BaseModel):
         default_factory=list,
         description="Indices of the ProcessedSegments that formed this sentence.",
     )
+
+
+class PreparedTranscript(BaseModel):
+    """
+    The output of the transcript preparation pipeline.
+
+    Sentences are what chunking and hashing consume; the language fields are
+    carried through for video metadata.
+    """
+
+    sentences: list[Sentence]
+    language: str
+    language_code: str
+
+    @property
+    def duration(self) -> float:
+        """End timestamp of the last sentence, or 0.0 for an empty transcript."""
+        return self.sentences[-1].end if self.sentences else 0.0
 
 
 class TranscriptResponse(BaseModel):

@@ -1,6 +1,9 @@
+from src.models.chunks import ParentChunk
 from src.models.context import BuiltContext
 from src.models.retrieval import Evidence, RetrievalResponse
 from src.generation.base import GenerationProvider
+
+OVERVIEW_TOKEN_BUDGET = 6000
 
 
 class GenerationService:
@@ -23,6 +26,28 @@ class GenerationService:
                              for source in context.sources]
 
         return RetrievalResponse(answer=answer, evidence=evidence)
+
+
+    def generate_overview(self, parents: list[ParentChunk]) -> str:
+        """
+        Summarise a video from its parent chunks.
+        Called once per indexing run, never per query.
+        """
+
+        selected: list[str] = []
+        used_tokens = 0
+
+        for parent in parents:
+
+            if selected and used_tokens + parent.token_count > OVERVIEW_TOKEN_BUDGET:
+                break
+
+            selected.append(parent.text)
+            used_tokens += parent.token_count
+
+        return self._provider.generate(question="",
+                                       context="\n\n".join(selected),
+                                       mode="overview")
 
 
     def generate_out_of_scope(self,
