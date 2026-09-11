@@ -41,3 +41,16 @@ class VideoNotFound(Exception):
     def __init__(self, video_id: str) -> None:
         self.video_id = video_id
         super().__init__(f"Video not found: '{video_id}'")
+
+
+class ResetFailed(Exception):
+    """
+    Raised when one of the stores could not be cleared during a reset.
+    Reset spans PostgreSQL, Qdrant and an in-memory cache.
+    """
+
+    def __init__(self, stage: str, reason: str, completed: list[str]) -> None:
+        self.stage = stage
+        self.reason = reason
+        self.completed = completed
+        super().__init__(f"Reset failed while clearing '{stage}': {reason}")

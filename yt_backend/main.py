@@ -14,8 +14,14 @@ from fastapi.responses import JSONResponse
 
 from src.api.chunking import router as chunking_router
 from src.api.embedding import router as embedding_router
-from src.api.exceptions import InvalidYouTubeURL, TranscriptNotAvailable, VideoNotFound
+from src.api.exceptions import (
+    InvalidYouTubeURL,
+    ResetFailed,
+    TranscriptNotAvailable,
+    VideoNotFound,
+)
 from src.api.indexing import router as index_router
+from src.api.reset import router as reset_router
 from src.api.retrieval import router as query_router
 from src.api.transcript import router as transcript_router
 from src.config.settings import get_settings
@@ -60,6 +66,19 @@ async def video_not_found_handler(request: Request, exc: VideoNotFound) -> JSONR
     )
 
 
+@app.exception_handler(ResetFailed)
+async def reset_failed_handler(request: Request, exc: ResetFailed) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "reset_failed",
+            "detail": str(exc),
+            "stage": exc.stage,
+            "completed": exc.completed,
+        },
+    )
+
+
 # Main pipeline: index a video, then ask questions about it
 app.include_router(index_router, prefix="/api/v1")
 app.include_router(query_router, prefix="/api/v1")
@@ -68,6 +87,9 @@ app.include_router(query_router, prefix="/api/v1")
 app.include_router(transcript_router, prefix="/api/v1")
 app.include_router(chunking_router, prefix="/api/v1")
 app.include_router(embedding_router, prefix="/api/v1")
+
+# Development only: wipes every video this application has indexed.
+app.include_router(reset_router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["System"])

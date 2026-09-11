@@ -18,6 +18,12 @@ class BM25Retriever(KeywordRetriever):
         self._documents.pop(video_id, None)
 
 
+    def clear(self) -> None:
+        """Drop every cached keyword index, not just one video's."""
+        self._indexes.clear()
+        self._documents.clear()
+
+
     @staticmethod
     def _tokenize(text: str) -> list[str]:
         return re.findall(r"\b[\w-]+\b", text.lower())

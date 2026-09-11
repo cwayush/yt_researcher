@@ -39,6 +39,7 @@ from src.retrieval.reranking.cross_encoder import CrossEncoderReranker
 
 from src.services.generation import GenerationService
 from src.services.indexing import IndexingService
+from src.services.reset import ResetService
 from src.services.retrieval import RetrievalService
 from src.services.transcript import TranscriptService
 
@@ -118,6 +119,15 @@ def get_indexing_service() -> IndexingService:
         vector_store=get_vector_store(),
         index_state=get_index_state_store(),
         oembed_provider=get_oembed_provider(),
+        keyword_retriever=get_keyword_retriever(),
+    )
+
+
+@lru_cache(maxsize=1)
+def get_reset_service() -> ResetService:
+    return ResetService(
+        index_state=get_index_state_store(),
+        vector_store=get_vector_store(),
         keyword_retriever=get_keyword_retriever(),
     )
 
