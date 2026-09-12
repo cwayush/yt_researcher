@@ -1,56 +1,88 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { demoQAPairs, suggestedQuestions } from "@/data/demo";
-import { MOCK_ANSWER_DELAY_MS } from "@/lib/constants";
-import { formatSeconds, mapScoreToRelevance } from "@/lib/utils";
-import { apiClient } from "@/services/api";
-import { getStoredSettings } from "@/services/storage";
+import { MIN_QUESTION_LENGTH, QUERY_ERROR_COPY } from "@/lib/constants";
+import { ApiError, apiClient } from "@/services/api";
+import { toEvidenceChunks } from "@/services/mappers";
 import { historyStore } from "@/hooks/useHistory";
-import { EvidenceChunk, QAPair, ResearchEntry, RetrievalDetails, VideoMeta } from "@/types";
+import { ResearchEntry, RetrievalDetails, VideoMeta } from "@/types";
 
-// Loosely matches a typed question against the pre-baked demo answers.
-function findDemoAnswer(question: string): QAPair | undefined {
-  const q = question.toLowerCase().trim();
-  return demoQAPairs.find(
-    (pair) =>
-      pair.question.toLowerCase() === q ||
-      pair.question.toLowerCase().includes(q.slice(0, 15)) ||
-      q.includes(pair.question.toLowerCase().slice(0, 15))
-  );
-}
-
+// Everything here is measured in this browser. The backend reports no retrieval
+// internals, so nothing beyond these values is claimed.
 function buildRetrievalDetails(
   query: string,
-  evidenceCount: number,
+  evidence: ResearchEntry["evidence"],
   declined: boolean,
-  executionTimeMs: number
+  roundTripMs: number
 ): RetrievalDetails {
+  const topScore = evidence[0]?.relevanceScore;
+
   return {
     query: `"${query}"`,
-    candidates: `${declined ? 12 : 24} chunks`,
-    denseRetrieval: "Top 10",
-    keywordRetrieval: "Top 10",
-    rrfMerged: `${declined ? 6 : 18} unique chunks`,
-    reranked: "Top 5",
-    selectedEvidence: `${evidenceCount} chunks`,
-    confidence: declined ? "Low, declined to answer" : "High",
-    executionTimeMs,
+    outcome: declined ? "Declined, not enough evidence" : "Answered from retrieved evidence",
+    evidenceCount: `${evidence.length} chunk${evidence.length === 1 ? "" : "s"}`,
+    topScore: topScore === undefined ? "—" : topScore.toFixed(3),
+    roundTripMs,
   };
 }
 
 export function useVideoResearch(video: VideoMeta) {
   const [question, setQuestion] = useState("");
   const [entries, setEntries] = useState<ResearchEntry[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDevView, setShowDevView] = useState(false);
 
   const researchEndRef = useRef<HTMLDivElement | null>(null);
 
-  const submitQuestion = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed) return;
+  const runQuery = useCallback(
+    async (entryId: string, text: string) => {
+      setIsSubmitting(true);
+      const startedAt = performance.now();
 
-      setQuestion("");
+      const resolve = (patch: Partial<ResearchEntry>) =>
+        setEntries((prev) =>
+          prev.map((entry) =>
+            entry.id === entryId
+              ? { ...entry, isLoading: false, error: undefined, ...patch }
+              : entry
+          )
+        );
+
+      try {
+        const res = await apiClient.queryVideo(video.id, text);
+        const evidence = toEvidenceChunks(res.evidence);
+
+        // No evidence means the backend's confidence gate declined to answer.
+        const declined = !res.answer || evidence.length === 0;
+
+        resolve({
+          answer: declined ? null : res.answer,
+          evidence: declined ? [] : evidence,
+          noAnswer: declined,
+          retrievalDetails: buildRetrievalDetails(
+            text,
+            evidence,
+            declined,
+            Math.round(performance.now() - startedAt)
+          ),
+        });
+
+        historyStore.recordQuestion(video.id);
+      } catch (err: unknown) {
+        const kind = err instanceof ApiError ? err.kind : "server";
+        resolve({ answer: null, evidence: [], noAnswer: false, error: QUERY_ERROR_COPY[kind] });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [video.id]
+  );
+
+  const submitQuestion = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (trimmed.length < MIN_QUESTION_LENGTH || isSubmitting) return;
+
       const entryId = `entry-${Date.now()}`;
+      setQuestion("");
 
       setEntries((prev) => [
         ...prev,
@@ -64,65 +96,27 @@ export function useVideoResearch(video: VideoMeta) {
         },
       ]);
 
-      const resolve = (patch: Partial<ResearchEntry>) => {
-        setEntries((prev) =>
-          prev.map((e) => (e.id === entryId ? { ...e, isLoading: false, ...patch } : e))
-        );
-        historyStore.add({ ...video, questionCount: video.questionCount + 1 });
-      };
-
-      const settings = getStoredSettings();
-      const startedAt = performance.now();
-
-      if (settings.useBackendApi) {
-        try {
-          const res = await apiClient.queryVideo(video.id, trimmed);
-          const evidence: EvidenceChunk[] = res.evidence.map((ev, i) => ({
-            id: `ev-${entryId}-${i}`,
-            startTimestamp: formatSeconds(ev.start),
-            endTimestamp: formatSeconds(ev.end),
-            startSeconds: ev.start,
-            endSeconds: ev.end,
-            text: ev.text,
-            relevance: mapScoreToRelevance(ev.relevance_score),
-            relevanceScore: ev.relevance_score,
-          }));
-
-          const declined = !res.answer || evidence.length === 0;
-          resolve({
-            answer: declined ? null : res.answer,
-            evidence: declined ? [] : evidence,
-            noAnswer: declined,
-            retrievalDetails: buildRetrievalDetails(
-              trimmed,
-              evidence.length,
-              declined,
-              Math.round(performance.now() - startedAt)
-            ),
-          });
-
-          return;
-        } catch {
-          // Backend unavailable, fall through to the bundled demo answers.
-        }
-      }
-
-      await new Promise((r) => setTimeout(r, MOCK_ANSWER_DELAY_MS));
-
-      const match = findDemoAnswer(trimmed);
-      resolve({
-        answer: match?.answer ?? null,
-        evidence: match?.evidence ?? [],
-        noAnswer: !match,
-        retrievalDetails: buildRetrievalDetails(
-          trimmed,
-          match?.evidence.length ?? 0,
-          !match,
-          Math.round(performance.now() - startedAt)
-        ),
-      });
+      void runQuery(entryId, trimmed);
     },
-    [video]
+    [isSubmitting, runQuery]
+  );
+
+  const retryEntry = useCallback(
+    (entryId: string) => {
+      if (isSubmitting) return;
+
+      const entry = entries.find((item) => item.id === entryId);
+      if (!entry) return;
+
+      setEntries((prev) =>
+        prev.map((item) =>
+          item.id === entryId ? { ...item, isLoading: true, error: undefined } : item
+        )
+      );
+
+      void runQuery(entryId, entry.question);
+    },
+    [entries, isSubmitting, runQuery]
   );
 
   // Keep the newest exchange in view as the thread grows.
@@ -136,11 +130,12 @@ export function useVideoResearch(video: VideoMeta) {
     question,
     setQuestion,
     entries,
-    showSuggestions: entries.length === 0,
+    isSubmitting,
+    showEmptyState: entries.length === 0,
     showDevView,
     setShowDevView,
     researchEndRef,
     submitQuestion,
-    suggestedQuestions,
+    retryEntry,
   };
 }
