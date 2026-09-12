@@ -9,7 +9,6 @@ import { NAV_ITEMS, ROUTES } from "@/routes/paths";
 
 interface NavbarProps {
   videoTitle?: string;
-  onBack?: () => void;
 }
 
 export function Navbar({ videoTitle }: NavbarProps) {

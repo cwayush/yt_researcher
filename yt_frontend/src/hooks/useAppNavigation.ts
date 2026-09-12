@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES, workspacePath } from "@/routes/paths";
-import { extractVideoId } from "@/lib/utils";
 
 // Every screen wires its navigation through this hook so the intents stay
 // identical wherever they are triggered from.
@@ -12,7 +11,8 @@ export function useAppNavigation() {
   const goHistory = useCallback(() => navigate(ROUTES.history), [navigate]);
 
   const goWorkspace = useCallback(
-    (videoId: string) => navigate(workspacePath(videoId)),
+    (videoId: string, options?: { replace?: boolean }) =>
+      navigate(workspacePath(videoId), { replace: options?.replace }),
     [navigate]
   );
 
@@ -22,9 +22,7 @@ export function useAppNavigation() {
 
   const startAnalysis = useCallback(
     (url: string) => {
-      navigate(ROUTES.processing, {
-        state: { url, videoId: extractVideoId(url) ?? "" },
-      });
+      navigate(ROUTES.processing, { state: { url } });
     },
     [navigate]
   );

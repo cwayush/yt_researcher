@@ -3,6 +3,7 @@ export const ROUTES = {
   processing: "/processing",
   workspace: "/workspace/:videoId",
   history: "/history",
+  howItWorks: "/how-it-works",
 } as const;
 
 export function workspacePath(videoId: string): string {
@@ -11,7 +12,6 @@ export function workspacePath(videoId: string): string {
 
 export interface ProcessingLocationState {
   url: string;
-  videoId: string;
 }
 
 export interface NavItemDescriptor {

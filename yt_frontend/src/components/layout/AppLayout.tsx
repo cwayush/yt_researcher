@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Outlet, useLocation, useMatch } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
-import { useAppNavigation } from "@/hooks/useAppNavigation";
 import { getVideoById } from "@/services/storage";
 import { ROUTES } from "@/routes/paths";
 import { cn } from "@/lib/utils";
@@ -10,7 +9,6 @@ import { cn } from "@/lib/utils";
 // panel scrolling on large viewports; everything else scrolls normally.
 export function AppLayout() {
   const location = useLocation();
-  const { goHome } = useAppNavigation();
   const workspaceMatch = useMatch(ROUTES.workspace);
 
   const videoId = workspaceMatch?.params.videoId;
@@ -25,7 +23,7 @@ export function AppLayout() {
         isWorkspace && "lg:h-screen lg:min-h-0 lg:overflow-hidden"
       )}
     >
-      <Navbar videoTitle={videoTitle} onBack={isWorkspace ? goHome : undefined} />
+      <Navbar videoTitle={videoTitle} />
       <div
         key={location.pathname}
         className={cn(
