@@ -7,12 +7,23 @@ import { VideoProps } from "@/types";
 export function VideoMetaPanel({ video }: VideoProps) {
   const playable = hasPlayableSource(video.url);
 
+  // Metadata lookup is best-effort on the backend, so skip whatever is missing
+  // rather than printing separators around blanks.
+  const facts = [video.channel, video.duration, video.language].filter(Boolean);
+
   return (
     <div>
-      <h2 className="mb-1.5 text-base leading-snug font-semibold text-foreground">{video.title}</h2>
-      <p className="mb-3 text-xs text-foreground-muted">
-        {video.channel} · <span className="font-mono-ts">{video.duration}</span> · {video.language}
-      </p>
+      <h2 className="text-foreground mb-1.5 text-base leading-snug font-semibold">{video.title}</h2>
+      {facts.length > 0 && (
+        <p className="text-foreground-muted mb-3 text-xs">
+          {facts.map((fact, i) => (
+            <span key={fact}>
+              {i > 0 && " · "}
+              <span className={fact === video.duration ? "font-mono-ts" : undefined}>{fact}</span>
+            </span>
+          ))}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         {video.isIndexed && (
@@ -21,7 +32,7 @@ export function VideoMetaPanel({ video }: VideoProps) {
             Indexed
           </Badge>
         )}
-        {playable ? (
+        {playable && (
           <a
             href={video.url}
             target="_blank"
@@ -31,17 +42,15 @@ export function VideoMetaPanel({ video }: VideoProps) {
             Open in YouTube
             <ExternalLink className="h-3 w-3" />
           </a>
-        ) : (
-          <Badge variant="muted" size="sm">
-            Demo content
-          </Badge>
         )}
       </div>
 
-      <div className="mt-6 border-t border-border pt-5">
-        <EyebrowLabel className="mb-2">Overview</EyebrowLabel>
-        <p className="text-sm leading-relaxed text-foreground-soft">{video.summary}</p>
-      </div>
+      {video.summary && (
+        <div className="border-border mt-6 border-t pt-5">
+          <EyebrowLabel className="mb-2">Overview</EyebrowLabel>
+          <p className="text-foreground-soft text-sm leading-relaxed">{video.summary}</p>
+        </div>
+      )}
     </div>
   );
 }

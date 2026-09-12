@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Maximize2, Minimize2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { VideoPlayer } from "@/components/video/VideoPlayer";
 import { VideoPreview } from "@/components/video/VideoPreview";
 import { VideoMetaPanel } from "@/components/video/VideoMetaPanel";
 import { ResearchPanel } from "@/components/research/ResearchPanel";
@@ -11,7 +12,7 @@ import { useVideoResearch } from "@/hooks/useVideoResearch";
 import { getVideoById } from "@/services/storage";
 import { ROUTES } from "@/routes/paths";
 import { WORKSPACE_LABELS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, hasPlayableSource } from "@/lib/utils";
 import { VideoProps } from "@/types";
 
 export function WorkspaceScreen() {
@@ -24,19 +25,41 @@ export function WorkspaceScreen() {
   return <Workspace key={video.id} video={video} />;
 }
 
+interface Playback {
+  seconds: number;
+  cue: number;
+}
+
 function Workspace({ video }: VideoProps) {
   const { startNewAnalysis } = useAppNavigation();
   const {
     question,
     setQuestion,
     entries,
-    showSuggestions,
+    isSubmitting,
+    showEmptyState,
     showDevView,
     setShowDevView,
     researchEndRef,
     submitQuestion,
-    suggestedQuestions,
+    retryEntry,
   } = useVideoResearch(video);
+
+  const playable = hasPlayableSource(video.url);
+  const [playback, setPlayback] = useState<Playback | null>(null);
+  const [isTheater, setIsTheater] = useState(false);
+
+  const playerRef = useRef<HTMLElement | null>(null);
+
+  const playFrom = useCallback(
+    (seconds: number) => {
+      if (!playable) return;
+      setPlayback((current) => ({ seconds, cue: (current?.cue ?? 0) + 1 }));
+
+      playerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    [playable]
+  );
 
   return (
     <div className="flex flex-1 flex-col pt-1 lg:min-h-0 lg:overflow-hidden">
@@ -59,10 +82,46 @@ function Workspace({ video }: VideoProps) {
       </header>
 
       <PageContainer className="flex flex-1 flex-col pb-4 lg:min-h-0 lg:overflow-hidden">
-        <div className="rounded-card border-border flex flex-1 flex-col overflow-hidden border lg:grid lg:min-h-0 lg:grid-cols-[42%_minmax(0,1fr)]">
-          <section className="border-border border-b p-5 lg:overflow-y-auto lg:border-r lg:border-b-0">
-            <div className="mx-auto max-w-panel lg:max-w-none">
-              <VideoPreview video={video} />
+        <div
+          className={cn(
+            "rounded-card border-border flex flex-1 flex-col overflow-hidden border lg:grid lg:min-h-0",
+            isTheater ? "lg:grid-cols-[64%_minmax(0,1fr)]" : "lg:grid-cols-[42%_minmax(0,1fr)]"
+          )}
+        >
+          <section
+            ref={playerRef}
+            className="border-border border-b p-5 lg:overflow-y-auto lg:border-r lg:border-b-0"
+          >
+            <div className={cn("mx-auto lg:max-w-none", isTheater ? "max-w-none" : "max-w-panel")}>
+              {playback ? (
+                <VideoPlayer
+                  key={playback.cue}
+                  videoId={video.id}
+                  title={video.title}
+                  startSeconds={playback.seconds}
+                />
+              ) : (
+                <VideoPreview video={video} onPlay={playable ? () => playFrom(0) : undefined} />
+              )}
+
+              {playable && (
+                <div className="flex justify-end pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-pressed={isTheater}
+                    onClick={() => setIsTheater((open) => !open)}
+                  >
+                    {isTheater ? (
+                      <Minimize2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    )}
+                    {isTheater ? WORKSPACE_LABELS.theaterOff : WORKSPACE_LABELS.theaterOn}
+                  </Button>
+                </div>
+              )}
+
               <div className="pt-4">
                 <VideoMetaPanel video={video} />
               </div>
@@ -72,12 +131,13 @@ function Workspace({ video }: VideoProps) {
           <section className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
             <ResearchPanel
               entries={entries}
-              videoUrl={video.url}
               question={question}
               onQuestionChange={setQuestion}
               onSubmitQuestion={submitQuestion}
-              suggestedQuestions={suggestedQuestions}
-              showSuggestions={showSuggestions}
+              onRetryEntry={retryEntry}
+              onWatchFrom={playable ? playFrom : undefined}
+              isSubmitting={isSubmitting}
+              showEmptyState={showEmptyState}
               showDevView={showDevView}
               endRef={researchEndRef}
             />
