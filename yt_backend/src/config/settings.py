@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
+    # Browser origins allowed to call the API, comma separated.
+    cors_allow_origins: str = "http://localhost:5173, http://127.0.0.1:5173"
+
     # Transcript processing
     sentence_pause_threshold: float = 2.0  # seconds between segments to force sentence break
 
@@ -78,6 +81,11 @@ class Settings(BaseSettings):
     # Cross-encoder reranking
     reranker_model: str
     reranker_min_score: float = Field(gt=0.0, lt=1.0)
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        """The comma-separated origins as a list, for CORSMiddleware."""
+        return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
 
 
 @lru_cache(maxsize=1)

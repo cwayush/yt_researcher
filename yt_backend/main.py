@@ -10,6 +10,7 @@ Never expose stack traces or internal error details to clients.
 """
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.chunking import router as chunking_router
@@ -34,6 +35,14 @@ app = FastAPI(
     description="Backend for YouTube Video RAG - fetch, process, chunk, embed, and query YouTube transcripts.",
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# The browser client runs on its own origin, so it needs explicit permission.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
