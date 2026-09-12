@@ -19,27 +19,17 @@ export function formatSeconds(seconds: number): string {
   return hrs > 0 ? `${String(hrs).padStart(2, "0")}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-// Answers are stored as blank-line separated paragraphs.
-export function firstParagraph(text: string): string {
-  return text.split("\n\n")[0];
-}
-
+// Only the two forms the backend's extract_video_id accepts: a watch URL or a
+// youtu.be share link. Anything else is rejected here rather than after a
+// round trip, since /index would answer 400 for it.
 const YOUTUBE_URL_PATTERN =
-  /^https?:\/\/(www\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[\w-]{11}/;
-
-const YOUTUBE_ID_PATTERN =
-  /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/;
+  /^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)[\w-]{11}(?:[&?#/]|$)/;
 
 const YOUTUBE_WHOLE_ID_PATTERN =
   /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?(?:.*&)?v=))([^&?/#]+)/;
 
 export function isValidYouTubeUrl(url: string): boolean {
   return YOUTUBE_URL_PATTERN.test(url.trim());
-}
-
-export function extractVideoId(url: string): string | null {
-  const match = url.trim().match(YOUTUBE_ID_PATTERN);
-  return match ? match[1] : null;
 }
 
 export function hasPlayableSource(url: string): boolean {
@@ -53,7 +43,13 @@ export function mapScoreToRelevance(score: number): Relevance {
   return "Low";
 }
 
-export function youTubeTimestampUrl(url: string, seconds: number): string {
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}t=${Math.max(0, Math.floor(seconds))}s`;
+// The watch URL, whatever form the user pasted. Short links and /shorts/ don't
+// take a ?t= offset, so evidence links are always built from this shape.
+export function canonicalYouTubeUrl(videoId: string): string {
+  return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+// hqdefault exists for every video; maxresdefault 404s on plenty of them.
+export function youTubeThumbnailUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 }

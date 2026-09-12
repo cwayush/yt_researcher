@@ -1,9 +1,8 @@
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from "@/lib/constants";
-import { historyVideos } from "@/data/demo";
 import { SettingsState, VideoMeta } from "@/types";
 
-// Only read path for history. Screens must not import the demo array
-// directly or writes made here become invisible to the UI.
+// The only module that touches localStorage for history and settings. Screens
+// and hooks read through it so a write here is visible to every consumer.
 
 function readJson<T>(key: string): T | null {
   try {
@@ -22,20 +21,9 @@ function writeJson(key: string, value: unknown): void {
   }
 }
 
-// Layers a stored record over its bundled counterpart so an older
-// shape still renders completely.
-function hydrate(stored: VideoMeta): VideoMeta {
-  const bundled = historyVideos.find((v) => v.id === stored.id);
-  return bundled ? { ...bundled, ...stored } : stored;
-}
-
 export function getStoredHistory(): VideoMeta[] {
   const parsed = readJson<VideoMeta[]>(STORAGE_KEYS.HISTORY);
-  if (!Array.isArray(parsed)) {
-    saveStoredHistory(historyVideos);
-    return historyVideos;
-  }
-  return parsed.map(hydrate);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export function saveStoredHistory(videos: VideoMeta[]): VideoMeta[] {
@@ -52,6 +40,19 @@ export function addOrUpdateHistoryVideo(video: VideoMeta): VideoMeta[] {
   return saveStoredHistory([merged, ...current.filter((v) => v.id !== video.id)]);
 }
 
+// Reads the stored count rather than trusting a caller's snapshot, which goes
+// stale as soon as a second question is asked in the same session.
+export function incrementQuestionCount(videoId: string): VideoMeta[] {
+  const current = getStoredHistory();
+  const existing = current.find((v) => v.id === videoId);
+  if (!existing) return current;
+
+  return addOrUpdateHistoryVideo({
+    ...existing,
+    questionCount: existing.questionCount + 1,
+  });
+}
+
 export function deleteHistoryVideo(videoId: string): VideoMeta[] {
   return saveStoredHistory(getStoredHistory().filter((v) => v.id !== videoId));
 }
@@ -60,14 +61,10 @@ export function clearHistory(): VideoMeta[] {
   return saveStoredHistory([]);
 }
 
-// Resolves a video for a /workspace/:videoId deep link. Stored history
-// first, then the bundled demos so a fresh browser still opens.
+// Resolves a video for a /workspace/:videoId deep link. A video is only known
+// to this browser once it has been indexed from here.
 export function getVideoById(videoId: string): VideoMeta | null {
-  return (
-    getStoredHistory().find((v) => v.id === videoId) ??
-    historyVideos.find((v) => v.id === videoId) ??
-    null
-  );
+  return getStoredHistory().find((v) => v.id === videoId) ?? null;
 }
 
 export function getStoredSettings(): SettingsState {

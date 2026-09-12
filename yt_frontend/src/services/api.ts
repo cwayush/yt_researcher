@@ -1,11 +1,37 @@
 import {
+  ApiErrorBody,
+  ApiErrorKind,
   IndexRequest,
   IndexResponse,
+  ResetRequest,
+  ResetResponse,
   RetrievalRequest,
   RetrievalResponse,
-  TranscriptResponse,
 } from "@/types/api";
 import { getStoredSettings } from "@/services/storage";
+
+export class ApiError extends Error {
+  constructor(
+    readonly kind: ApiErrorKind,
+    readonly status?: number
+  ) {
+    super(`${kind}${status ? ` (${status})` : ""}`);
+    this.name = "ApiError";
+  }
+}
+
+// The backend names its domain errors; anything else is classified by status.
+const ERROR_KINDS: Record<string, ApiErrorKind> = {
+  invalid_youtube_url: "invalid_url",
+  transcript_not_available: "no_transcript",
+};
+
+function classify(status: number, body: ApiErrorBody | null): ApiErrorKind {
+  const named = body?.error ? ERROR_KINDS[body.error] : undefined;
+  if (named) return named;
+  if (status === 400 || status === 422) return "bad_request";
+  return "server";
+}
 
 export class ApiClient {
   private get baseUrl(): string {
@@ -13,28 +39,24 @@ export class ApiClient {
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    let res: Response;
+
+    try {
+      res = await fetch(`${this.baseUrl}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      throw new ApiError("network");
+    }
 
     if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      throw new Error(err?.detail || err?.error || `Request to ${path} failed (${res.status})`);
+      const parsed = (await res.json().catch(() => null)) as ApiErrorBody | null;
+      throw new ApiError(classify(res.status, parsed), res.status);
     }
 
     return res.json() as Promise<T>;
-  }
-
-  async checkHealth(): Promise<boolean> {
-    try {
-      const root = this.baseUrl.replace(/\/api\/v1$/, "");
-      const res = await fetch(`${root}/health`);
-      return res.ok;
-    } catch {
-      return false;
-    }
   }
 
   indexVideo(url: string): Promise<IndexResponse> {
@@ -48,8 +70,10 @@ export class ApiClient {
     } satisfies RetrievalRequest);
   }
 
-  fetchTranscript(url: string): Promise<TranscriptResponse> {
-    return this.post<TranscriptResponse>("/transcript", { url } satisfies IndexRequest);
+  // Development reset: clears every store the backend owns. Schema, migrations
+  // and the Qdrant collection itself are left in place.
+  resetApplicationData(): Promise<ResetResponse> {
+    return this.post<ResetResponse>("/reset", { confirm: true } satisfies ResetRequest);
   }
 }
 

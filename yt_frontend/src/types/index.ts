@@ -28,7 +28,6 @@ export interface VideoMeta {
   durationSeconds: number;
   language: string;
   thumbnail: string;
-  publishedAt: string;
   questionCount: number;
   lastResearched: string;
   isIndexed: boolean;
@@ -44,6 +43,7 @@ export interface ResearchEntry extends Omit<QAPair, "answer"> {
   answer: string | null;
   isLoading: boolean;
   noAnswer: boolean;
+  error?: string;
   retrievalDetails?: RetrievalDetails;
 }
 
@@ -52,30 +52,17 @@ export interface ProcessingStep {
   label: string;
 }
 
-export type ProcessingStatus = "pending" | "active" | "completed";
-
-export interface ProcessingStepState extends ProcessingStep {
-  status: ProcessingStatus;
-}
-
-// Backing data for the workspace "Dev Mode" inspector.
+// Dev Mode inspector.
 export interface RetrievalDetails {
   query: string;
-  candidates: string;
-  denseRetrieval: string;
-  keywordRetrieval: string;
-  rrfMerged: string;
-  reranked: string;
-  selectedEvidence: string;
-  confidence: string;
-  executionTimeMs: number;
+  outcome: string;
+  evidenceCount: string;
+  topScore: string;
+  roundTripMs: number;
 }
 
 export interface SettingsState {
   apiBaseUrl: string;
-  useBackendApi: boolean;
-  topK: number;
-  retrievalMode: "dense" | "hybrid";
 }
 
 export type ThemePreference = "light" | "dark" | "system";
