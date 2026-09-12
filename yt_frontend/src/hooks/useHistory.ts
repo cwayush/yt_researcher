@@ -4,6 +4,7 @@ import {
   clearHistory,
   deleteHistoryVideo,
   getStoredHistory,
+  incrementQuestionCount,
 } from "@/services/storage";
 import { VideoMeta } from "@/types";
 
@@ -31,15 +32,14 @@ export const historyStore = {
   add(video: VideoMeta) {
     commit(addOrUpdateHistoryVideo(video));
   },
+  recordQuestion(videoId: string) {
+    commit(incrementQuestionCount(videoId));
+  },
   remove(videoId: string) {
     commit(deleteHistoryVideo(videoId));
   },
   clear() {
     commit(clearHistory());
-  },
-  // Re-reads storage, e.g. after another tab wrote to it.
-  refresh() {
-    commit(getStoredHistory());
   },
 };
 
@@ -49,7 +49,6 @@ export function useHistory() {
   const add = useCallback((video: VideoMeta) => historyStore.add(video), []);
   const remove = useCallback((videoId: string) => historyStore.remove(videoId), []);
   const clear = useCallback(() => historyStore.clear(), []);
-  const refresh = useCallback(() => historyStore.refresh(), []);
 
-  return { history, add, remove, clear, refresh };
+  return { history, add, remove, clear };
 }

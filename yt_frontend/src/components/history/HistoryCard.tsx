@@ -24,9 +24,11 @@ export function HistoryCard({ video, onOpen, onDelete }: HistoryCardProps) {
           <p className="mb-1 truncate text-base font-semibold text-foreground">{video.title}</p>
           <p className="mb-3 text-sm text-foreground-soft">{video.channel}</p>
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className="font-mono-ts">{video.duration}</Badge>
-            <span className="text-xs text-foreground-muted">{video.questionCount} questions</span>
-            <span className="text-xs text-foreground-muted">{video.lastResearched}</span>
+            {video.duration && <Badge className="font-mono-ts">{video.duration}</Badge>}
+            <span className="text-foreground-muted text-xs">
+              {video.questionCount} {video.questionCount === 1 ? "question" : "questions"}
+            </span>
+            <span className="text-foreground-muted text-xs">{video.lastResearched}</span>
           </div>
         </div>
       </button>

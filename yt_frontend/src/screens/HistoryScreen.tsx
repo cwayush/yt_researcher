@@ -1,17 +1,24 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { EyebrowLabel } from "@/components/layout/EyebrowLabel";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { HistoryCard } from "@/components/history/HistoryCard";
 import { HistoryEmptyState } from "@/components/history/HistoryEmptyState";
+import { ResetDataDrawer } from "@/components/history/ResetDataDrawer";
 import { useAppNavigation } from "@/hooks/useAppNavigation";
+import { useDataReset } from "@/hooks/useDataReset";
 import { useHistory } from "@/hooks/useHistory";
+import { RESET_COPY } from "@/lib/constants";
 
 export function HistoryScreen() {
   const { goHome, goWorkspace } = useAppNavigation();
   const { history, remove } = useHistory();
+  const { reset, isResetting, error, clearError } = useDataReset();
+
   const [query, setQuery] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
 
   const results = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -24,15 +31,45 @@ export function HistoryScreen() {
 
   const isEmpty = history.length === 0;
 
+  function openReset() {
+    clearError();
+    setResetOpen(true);
+  }
+
+  function cancelReset() {
+    if (isResetting) return;
+    setResetOpen(false);
+  }
+
+  async function confirmReset() {
+    const ok = await reset();
+    if (ok) setResetOpen(false);
+  }
+
   return (
     <PageContainer className="flex-1 py-16">
-      <h1 className="font-display text-foreground mb-2 text-display">Your research</h1>
-      <p className="text-foreground-soft mb-2 text-base">
-        Return to videos you&apos;ve already explored.
-      </p>
-      <p className="text-foreground-muted mb-8 text-sm">
-        {history.length} {history.length === 1 ? "video" : "videos"} analysed
-      </p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-foreground mb-2 text-display">Your research</h1>
+          <p className="text-foreground-soft mb-2 text-base">
+            Return to videos you&apos;ve already explored.
+          </p>
+          <p className="text-foreground-muted text-sm">
+            {history.length} {history.length === 1 ? "video" : "videos"} analysed
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          onClick={openReset}
+          disabled={isEmpty}
+          title={isEmpty ? RESET_COPY.emptyHint : undefined}
+          className="text-danger hover:text-danger border-danger/25 hover:bg-danger/8"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          {RESET_COPY.action}
+        </Button>
+      </div>
 
       {isEmpty ? (
         <HistoryEmptyState onStart={goHome} />
@@ -72,6 +109,14 @@ export function HistoryScreen() {
           )}
         </>
       )}
+
+      <ResetDataDrawer
+        open={resetOpen}
+        isResetting={isResetting}
+        error={error}
+        onCancel={cancelReset}
+        onConfirm={confirmReset}
+      />
     </PageContainer>
   );
 }
