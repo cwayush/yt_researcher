@@ -8,7 +8,7 @@ export const HOME_HERO = {
     "Video Research turns a YouTube video into an interactive research workspace. Ask questions, discover relevant moments, and verify every answer against the original transcript.",
   ],
   inputHint: "Supports YouTube videos with available transcripts.",
-  demoLink: "or try a demo video",
+  recentLink: "or reopen your most recent video",
 } as const;
 
 export const HOME_SECTIONS = {
@@ -84,6 +84,17 @@ export const HOME_QUESTION_PROMPTS = [
   "What does the speaker say about RAG?",
   "What examples does the speaker give?",
 ] as const;
+
+// Illustrative exchange for the landing page's evidence mockup. Static copy,
+// never used to answer a real question.
+export const EVIDENCE_EXAMPLE = {
+  question: "What is RAG?",
+  answer:
+    "RAG, or Retrieval-Augmented Generation, is a technique that combines language models with information retrieval. Before generating an answer, the system retrieves relevant information from an external knowledge source and injects it into the model's context window.",
+  timestamp: "02:14–02:48",
+  quote:
+    "RAG stands for Retrieval-Augmented Generation. At its core, it's a technique that combines the power of language models with the precision of information retrieval.",
+} as const;
 
 export const GROUNDED_EXAMPLES = {
   supported: {

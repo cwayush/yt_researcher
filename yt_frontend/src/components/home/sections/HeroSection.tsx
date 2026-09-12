@@ -4,10 +4,10 @@ import { HOME_HERO } from "@/data/content";
 
 interface HeroSectionProps {
   onAnalyze: (url: string) => void;
-  onOpenDemo: () => void;
+  onOpenRecent?: () => void;
 }
 
-export function HeroSection({ onAnalyze, onOpenDemo }: HeroSectionProps) {
+export function HeroSection({ onAnalyze, onOpenRecent }: HeroSectionProps) {
   return (
     <section className="flex flex-col items-center px-6 pt-16 pb-20 text-center md:pt-24 md:pb-28">
       <div className="w-full max-w-hero">
@@ -27,9 +27,11 @@ export function HeroSection({ onAnalyze, onOpenDemo }: HeroSectionProps) {
         </div>
 
         <p className="text-foreground-muted mt-3 text-sm">{HOME_HERO.inputHint}</p>
-        <Button variant="link" size="bare" className="mt-3 text-sm" onClick={onOpenDemo}>
-          {HOME_HERO.demoLink} &rarr;
-        </Button>
+        {onOpenRecent && (
+          <Button variant="link" size="bare" className="mt-3 text-sm" onClick={onOpenRecent}>
+            {HOME_HERO.recentLink} &rarr;
+          </Button>
+        )}
       </div>
     </section>
   );

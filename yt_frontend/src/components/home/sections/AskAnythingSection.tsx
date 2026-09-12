@@ -1,7 +1,7 @@
 import { Section } from "@/components/layout/Section";
 import { EyebrowLabel } from "@/components/layout/EyebrowLabel";
 import { ResearchMockup } from "@/components/home/ResearchMockup";
-import { QuestionButton } from "@/components/research/QuestionButton";
+import { QuestionButton } from "@/components/home/QuestionButton";
 import { HOME_QUESTION_PROMPTS, HOME_SECTIONS } from "@/data/content";
 
 export function AskAnythingSection() {

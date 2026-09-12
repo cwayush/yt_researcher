@@ -7,17 +7,19 @@ import { AskAnythingSection } from "@/components/home/sections/AskAnythingSectio
 import { GroundedSection } from "@/components/home/sections/GroundedSection";
 import { useAppNavigation } from "@/hooks/useAppNavigation";
 import { useHistory } from "@/hooks/useHistory";
-import { demoVideo } from "@/data/demo";
 
 export function HomeScreen() {
   const { goWorkspace, startAnalysis } = useAppNavigation();
   const { history } = useHistory();
 
-  const openDemo = () => goWorkspace(history[0]?.id ?? demoVideo.id);
+  const mostRecentId = history[0]?.id;
 
   return (
     <div className="flex flex-1 flex-col">
-      <HeroSection onAnalyze={startAnalysis} onOpenDemo={openDemo} />
+      <HeroSection
+        onAnalyze={startAnalysis}
+        onOpenRecent={mostRecentId ? () => goWorkspace(mostRecentId) : undefined}
+      />
       <ProductExplanationSection />
       <HowItWorksSection />
       <EvidenceSection />
