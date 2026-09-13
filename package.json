@@ -1,0 +1,19 @@
+{
+  "name": "yt-researcher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root launcher for yt_researcher. Starts the frontend on 5173 and the backend on 8000.",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,magenta npm:dev:backend npm:dev:frontend",
+    "dev:backend": "uv run --directory yt_backend uvicorn main:app --reload --port 8000",
+    "dev:frontend": "npm --prefix yt_frontend run dev",
+    "setup": "npm --prefix yt_frontend install && uv sync --directory yt_backend",
+    "migrate": "uv run --directory yt_backend alembic upgrade head",
+    "build": "npm --prefix yt_frontend run build",
+    "typecheck": "npm --prefix yt_frontend run typecheck",
+    "lint": "npm --prefix yt_frontend run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
