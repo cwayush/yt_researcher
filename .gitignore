@@ -1,7 +1,5 @@
 # Internal docs (local-only analysis files)
 /PROJECT_FLOW.md
-/BACKEND_ARCHITECTURE.md
-/FRONTEND_ARCHITECTURE.md
 
 # Editor and AI tool configs
 /opencode.json
