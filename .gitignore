@@ -29,3 +29,5 @@ env/
 
 # Secrets. Never commit real keys.
 .env
+.env.local
+.env.*.local

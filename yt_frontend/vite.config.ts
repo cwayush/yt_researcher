@@ -83,6 +83,10 @@ function htmlMetadata(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), htmlMetadata()],
+  // The .env lives at the repo root, one level above this Vite project. Only
+  // VITE_-prefixed keys from it are inlined; backend secrets sharing the file
+  // are read and discarded, never reaching the bundle.
+  envDir: fileURLToPath(new URL("..", import.meta.url)),
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

@@ -12,9 +12,15 @@ Usage:
 """
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# This file lives at <repo>/yt_backend/src/config/, so the repo root is 3 hops up.
+# Anchoring the .env path here instead of using a bare ".env" makes configuration
+# independent of the working directory the server is launched from.
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
@@ -25,7 +31,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=REPO_ROOT / ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",  # silently ignore unknown env vars
