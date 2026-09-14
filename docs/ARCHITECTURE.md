@@ -7,6 +7,11 @@ grounded, timestamped answer.
 This document describes the code as it exists today. Nothing here is aspirational — if a
 component isn't implemented, it isn't listed.
 
+Two editable Excalidraw diagrams sit alongside this document:
+[`indexing-flow.excalidraw`](./indexing-flow.excalidraw) mirrors §3.3 and
+[`query-flow.excalidraw`](./query-flow.excalidraw) mirrors §3.4. Open either at
+[excalidraw.com](https://excalidraw.com) (File → Open) or the Excalidraw VS Code extension.
+
 For a generated, queryable map of the actual codebase (modules, call graph, hub
 components), see [`graphify-out/`](./graphify-out/) — produced by running
 [graphify](https://github.com/safishamsi/graphify)'s AST extraction over the repo. It's a

@@ -408,6 +408,8 @@ same way.
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `README.md`                                    | This file — project overview, setup, and everyday commands.                                                                                                                       |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full frontend + backend architecture: layers, indexing and query flows, data stores, API contract.                                                                                |
+| [`docs/indexing-flow.excalidraw`](docs/indexing-flow.excalidraw) | Editable diagram of the `/index` pipeline (fresh/stale/rebuild/failure branches), traced from `IndexingService`. Open at [excalidraw.com](https://excalidraw.com) or the VS Code extension. |
+| [`docs/query-flow.excalidraw`](docs/query-flow.excalidraw) | Editable diagram of the `/query` pipeline (hybrid retrieval → confidence gate → generation) plus frontend rendering, traced from `RetrievalPipeline`. |
 | [`docs/graphify-out/`](docs/graphify-out/)     | Generated Graphify project graph — open `graph.html` or `docs-callflow.html` in a browser, or read `GRAPH_REPORT.md`. Run `graphify .` from the repository root to regenerate it. |
 
 ---
