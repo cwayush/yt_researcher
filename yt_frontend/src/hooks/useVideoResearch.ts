@@ -10,14 +10,20 @@ import { ResearchEntry, RetrievalDetails, VideoMeta } from "@/types";
 function buildRetrievalDetails(
   query: string,
   evidence: ResearchEntry["evidence"],
-  declined: boolean,
+  hasAnswer: boolean,
   roundTripMs: number
 ): RetrievalDetails {
   const topScore = evidence[0]?.relevanceScore;
 
+  const outcome = !hasAnswer
+    ? "No answer returned"
+    : evidence.length > 0
+      ? "Answered from retrieved evidence"
+      : "Answered out of scope (confidence gate declined, no evidence)";
+
   return {
     query: `"${query}"`,
-    outcome: declined ? "Declined, not enough evidence" : "Answered from retrieved evidence",
+    outcome,
     evidenceCount: `${evidence.length} chunk${evidence.length === 1 ? "" : "s"}`,
     topScore: topScore === undefined ? "—" : topScore.toFixed(3),
     roundTripMs,
@@ -50,17 +56,16 @@ export function useVideoResearch(video: VideoMeta) {
         const res = await apiClient.queryVideo(video.id, text);
         const evidence = toEvidenceChunks(res.evidence);
 
-        // No evidence means the backend's confidence gate declined to answer.
-        const declined = !res.answer || evidence.length === 0;
+        const hasAnswer = Boolean(res.answer);
 
         resolve({
-          answer: declined ? null : res.answer,
-          evidence: declined ? [] : evidence,
-          noAnswer: declined,
+          answer: hasAnswer ? res.answer : null,
+          evidence,
+          noAnswer: !hasAnswer,
           retrievalDetails: buildRetrievalDetails(
             text,
             evidence,
-            declined,
+            hasAnswer,
             Math.round(performance.now() - startedAt)
           ),
         });
