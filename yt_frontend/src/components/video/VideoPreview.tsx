@@ -11,7 +11,7 @@ export function VideoPreview({ video, onPlay }: VideoPreviewProps) {
 
   const overlay = (
     <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 transition-transform duration-150 group-hover:scale-105">
-      <Play className="fill-foreground text-foreground size-4.5" />
+      <Play className="fill-black text-black size-4.5" />
     </span>
   );
 

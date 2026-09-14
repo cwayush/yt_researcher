@@ -51,10 +51,10 @@ export function HistoryScreen() {
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-foreground mb-2 text-display">Your research</h1>
-          <p className="text-foreground-soft mb-2 text-base">
+          <p className="text-foreground-soft mb-2 text-base pl-2">
             Return to videos you&apos;ve already explored.
           </p>
-          <p className="text-foreground-muted text-sm">
+          <p className="text-foreground-muted text-sm pl-2">
             {history.length} {history.length === 1 ? "video" : "videos"} analysed
           </p>
         </div>
