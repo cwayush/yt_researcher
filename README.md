@@ -34,6 +34,17 @@
 
 </div>
 
+## Demo
+
+A two-minute walkthrough, with audio: paste a YouTube link, watch the transcript get
+indexed, ask a question, and jump straight to the moment the answer came from.
+
+[![Watch the yt researcher demo](https://res.cloudinary.com/dg1ueq4v7/video/upload/so_2/v1789429913/yt_researcher.jpg)](https://res.cloudinary.com/dg1ueq4v7/video/upload/v1789429913/yt_researcher.mp4)
+
+Click the thumbnail above, or [open the demo video directly](https://res.cloudinary.com/dg1ueq4v7/video/upload/v1789429913/yt_researcher.mp4) (MP4).
+
+---
+
 ## How it works
 
 ```mermaid
@@ -51,7 +62,7 @@ A pasted URL is fetched, its transcript reconstructed into sentences, and split 
 chunk sizes: small "child" chunks that get embedded and searched, and larger "parent"
 chunks the LLM actually reads for context. A question runs dense (Qdrant) and keyword
 (BM25) retrieval in parallel, fuses the results with reciprocal rank fusion, reranks them
-with a cross-encoder, and — only if the top score clears a confidence threshold — builds
+with a cross-encoder, and - only if the top score clears a confidence threshold - builds
 an answer from the retrieved transcript text. Below that threshold the app says so
 instead of guessing.
 
@@ -66,7 +77,7 @@ holds, are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   video reuses the existing index instead of rebuilding it.
 - Ask questions in plain language and get answers grounded in the transcript, with
   timestamped evidence quoted alongside each one.
-- Click a piece of evidence to jump the in-app player to that exact second — no tab
+- Click a piece of evidence to jump the in-app player to that exact second - no tab
   switching to YouTube.
 - Hybrid retrieval (dense + BM25, fused with RRF, then cross-encoder reranked) with a
   confidence gate that declines to answer rather than hallucinate when nothing relevant
@@ -289,7 +300,7 @@ Starts both servers concurrently (`dev:backend` on `:8000`, `dev:frontend` on `:
 
 ### Verify
 
-- Frontend: open `http://localhost:5173` — the landing page should load, and pasting a
+- Frontend: open `http://localhost:5173` - the landing page should load, and pasting a
   YouTube URL should move to the processing screen.
 - Backend: `GET http://localhost:8000/health` should return `200`; interactive docs are
   at `http://localhost:8000/docs`.
@@ -310,7 +321,7 @@ All routes are prefixed with `/api/v1`, except the health check.
 | `POST` | `/api/v1/transcript` | Fetch and clean a video's transcript (inspection route)                  |
 | `POST` | `/api/v1/chunks`     | Preview parent/child chunks (inspection route)                           |
 | `POST` | `/api/v1/embeddings` | Preview child vectors (inspection route)                                 |
-| `POST` | `/api/v1/reset`      | Development only — clears all indexed data. Requires `{"confirm": true}` |
+| `POST` | `/api/v1/reset`      | Development only: clears all indexed data. Requires `{"confirm": true}`  |
 
 Example, fetch a transcript:
 
@@ -343,10 +354,10 @@ internally, see [`docs/ARCHITECTURE.md#37-api-endpoints`](docs/ARCHITECTURE.md#3
 
 ---
 
-## Graphify — Project Visualization
+## Graphify - Project Visualization
 
 [Graphify](https://graphify.dev) generates an interactive, AST-based dependency graph of the
-codebase — no LLM involved. The output lives under `docs/graphify-out/` and is committed so you
+codebase - no LLM involved. The output lives under `docs/graphify-out/` and is committed so you
 can browse it without re-running the tool.
 
 ### Prerequisites
@@ -371,11 +382,11 @@ This writes (or updates) all output files under `docs/graphify-out/`.
 
 ### View the interactive graph
 
-Open `docs/graphify-out/graph.html` in a browser — it will not render as an interactive graph
+Open `docs/graphify-out/graph.html` in a browser - it will not render as an interactive graph
 inside the VS Code text editor.
 
 ```bash
-# Windows — open directly from the terminal
+# Windows - open directly from the terminal
 start .\docs\graphify-out\graph.html
 ```
 
@@ -406,11 +417,11 @@ same way.
 
 | Doc                                            | Covers                                                                                                                                                                            |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `README.md`                                    | This file — project overview, setup, and everyday commands.                                                                                                                       |
+| `README.md`                                    | This file: project overview, setup, and everyday commands.                                                                                                                        |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full frontend + backend architecture: layers, indexing and query flows, data stores, API contract.                                                                                |
 | [`docs/indexing-flow.excalidraw`](docs/indexing-flow.excalidraw) | Editable diagram of the `/index` pipeline (fresh/stale/rebuild/failure branches), traced from `IndexingService`. Open at [excalidraw.com](https://excalidraw.com) or the VS Code extension. |
 | [`docs/query-flow.excalidraw`](docs/query-flow.excalidraw) | Editable diagram of the `/query` pipeline (hybrid retrieval → confidence gate → generation) plus frontend rendering, traced from `RetrievalPipeline`. |
-| [`docs/graphify-out/`](docs/graphify-out/)     | Generated Graphify project graph — open `graph.html` or `docs-callflow.html` in a browser, or read `GRAPH_REPORT.md`. Run `graphify .` from the repository root to regenerate it. |
+| [`docs/graphify-out/`](docs/graphify-out/)     | Generated Graphify project graph - open `graph.html` or `docs-callflow.html` in a browser, or read `GRAPH_REPORT.md`. Run `graphify .` from the repository root to regenerate it. |
 
 ---
 
@@ -418,7 +429,7 @@ same way.
 
 - No automated test suite on either side. Verification is typecheck, lint, a production
   build, and a manual pass over `/reset` → `/index` → `/query` against a real video.
-- The frontend has no data-fetching or state library — `useSyncExternalStore` plus a
+- The frontend has no data-fetching or state library - `useSyncExternalStore` plus a
   typed `fetch` wrapper covers the one piece of shared state (history).
 - Backend configuration is validated eagerly at startup (`pydantic-settings`), so a
   missing or malformed `.env` value fails immediately instead of on first request.
